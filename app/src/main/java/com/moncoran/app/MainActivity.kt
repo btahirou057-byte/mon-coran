@@ -1,6 +1,6 @@
 package com.moncoran.app
-
 import android.os.Bundle
+import android.media.MediaPlayer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -319,6 +319,17 @@ fun SurahReader(
     surah: SurahData,
     onBack: () -> Unit
 ) {
+    var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    var isPlaying by remember { mutableStateOf(false) }
+    var isPreparing by remember { mutableStateOf(false) }
+
+    DisposableEffect(surah.number) {
+        onDispose {
+            player?.release()
+            player = null
+        }
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
             "‹ Retour",
@@ -342,12 +353,89 @@ fun SurahReader(
 
         Text(
             "${surah.ayahs.size} versets",
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 12.dp),
+            modifier = Modifier.fillMaxWidth(),
             color = Color.DarkGray,
             textAlign = TextAlign.Center
         )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(
+                onClick = {
+                    if (isPlaying) {
+                        player?.pause()
+                        isPlaying = false
+                    } else if (player != null) {
+                        player?.start()
+                        isPlaying = true
+                    } else {
+                        try {
+                            isPreparing = true
+
+                            val audio = MediaPlayer()
+                            player = audio
+
+                            val url =
+                                "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${surah.number}.mp3"
+
+                            audio.setDataSource(url)
+
+                            audio.setOnPreparedListener {
+                                isPreparing = false
+                                it.start()
+                                isPlaying = true
+                            }
+
+                            audio.setOnCompletionListener {
+                                isPlaying = false
+                                it.release()
+                                player = null
+                            }
+
+                            audio.setOnErrorListener { mp, _, _ ->
+                                isPlaying = false
+                                isPreparing = false
+                                mp.release()
+                                player = null
+                                true
+                            }
+
+                            audio.prepareAsync()
+                        } catch (e: Exception) {
+                            isPreparing = false
+                            player?.release()
+                            player = null
+                        }
+                    }
+                },
+                enabled = !isPreparing
+            ) {
+                Text(
+                    when {
+                        isPreparing -> "Chargement..."
+                        isPlaying -> "⏸ Pause"
+                        else -> "▶ Jouer"
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Button(
+                onClick = {
+                    player?.release()
+                    player = null
+                    isPlaying = false
+                    isPreparing = false
+                }
+            ) {
+                Text("⏹ Arrêter")
+            }
+        }
 
         LazyColumn(
             modifier = Modifier
@@ -366,7 +454,9 @@ fun SurahReader(
                     textAlign = TextAlign.Right
                 )
 
-                HorizontalDivider(color = Color(0xFFE5E8E1))
+                HorizontalDivider(
+                    color = Color(0xFFE5E8E1)
+                )
             }
         }
     }
