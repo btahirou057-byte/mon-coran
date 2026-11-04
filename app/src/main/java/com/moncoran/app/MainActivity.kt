@@ -1,6 +1,9 @@
+
 package com.moncoran.app
-import android.os.Bundle
+
+import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
@@ -70,27 +73,29 @@ private val surahNames = listOf(
 fun loadQuran(context: android.content.Context): List<SurahData> {
     val grouped = linkedMapOf<Int, MutableList<AyahData>>()
 
-    context.assets.open("quran-uthmani.txt").bufferedReader(Charsets.UTF_8).use { reader ->
-        reader.forEachLine { line ->
-            val parts = line.trim().split('|', limit = 3)
+    context.assets.open("quran-uthmani.txt")
+        .bufferedReader(Charsets.UTF_8).use { reader ->
 
-            if (parts.size == 3) {
-                val surahNumber = parts[0].trim()
-                    .removePrefix("\uFEFF").toIntOrNull()
-                val ayahNumber = parts[1].trim().toIntOrNull()
-                val arabicText = parts[2].trim()
+            reader.forEachLine { line ->
+                val parts = line.trim().split('|', limit = 3)
 
-                if (surahNumber != null &&
-                    ayahNumber != null &&
-                    arabicText.isNotEmpty()
-                ) {
-                    grouped.getOrPut(surahNumber) {
-                        mutableListOf()
-                    }.add(AyahData(ayahNumber, arabicText))
+                if (parts.size == 3) {
+                    val surahNumber = parts[0].trim()
+                        .removePrefix("\uFEFF").toIntOrNull()
+                    val ayahNumber = parts[1].trim().toIntOrNull()
+                    val arabicText = parts[2].trim()
+
+                    if (surahNumber != null &&
+                        ayahNumber != null &&
+                        arabicText.isNotEmpty()
+                    ) {
+                        grouped.getOrPut(surahNumber) {
+                            mutableListOf()
+                        }.add(AyahData(ayahNumber, arabicText))
+                    }
                 }
             }
         }
-    }
 
     return grouped.map { (number, ayahs) ->
         SurahData(
@@ -256,10 +261,12 @@ fun QuranHome(
                         color = Gold,
                         fontSize = 30.sp
                     )
+
                     Text(
                         "Lisez et méditez le Saint Coran",
                         color = Color.White
                     )
+
                     Text(
                         "${surahs.size} sourates disponibles",
                         color = Color.White
@@ -295,6 +302,7 @@ fun QuranHome(
                             color = Green,
                             fontWeight = FontWeight.Bold
                         )
+
                         Text(
                             "${surah.ayahs.size} versets",
                             color = Color.DarkGray,
@@ -319,22 +327,36 @@ fun SurahReader(
     surah: SurahData,
     onBack: () -> Unit
 ) {
-    var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    val playerState = remember {
+        mutableStateOf<MediaPlayer?>(null)
+    }
+
     var isPlaying by remember { mutableStateOf(false) }
     var isPreparing by remember { mutableStateOf(false) }
+    var audioError by remember { mutableStateOf<String?>(null) }
 
     DisposableEffect(surah.number) {
         onDispose {
-            player?.release()
-            player = null
+            playerState.value?.release()
+            playerState.value = null
         }
+    }
+
+    fun stopAudio() {
+        playerState.value?.release()
+        playerState.value = null
+        isPlaying = false
+        isPreparing = false
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
             "‹ Retour",
             modifier = Modifier
-                .clickable { onBack() }
+                .clickable {
+                    stopAudio()
+                    onBack()
+                }
                 .padding(16.dp),
             color = Green,
             fontWeight = FontWeight.Bold
@@ -362,27 +384,38 @@ fun SurahReader(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
+                enabled = !isPreparing,
                 onClick = {
+                    audioError = null
+
                     if (isPlaying) {
-                        player?.pause()
+                        playerState.value?.pause()
                         isPlaying = false
-                    } else if (player != null) {
-                        player?.start()
+                    } else if (playerState.value != null) {
+                        playerState.value?.start()
                         isPlaying = true
                     } else {
                         try {
                             isPreparing = true
 
-                            val audio = MediaPlayer()
-                            player = audio
-
                             val url =
                                 "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${surah.number}.mp3"
 
-                            audio.setDataSource(url)
+                            val audio = MediaPlayer()
+                            playerState.value = audio
+
+                            audio.setAudioAttributes(
+                                AudioAttributes.Builder()
+                                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                                    .setContentType(
+                                        AudioAttributes.CONTENT_TYPE_MUSIC
+                                    )
+                                    .build()
+                            )
 
                             audio.setOnPreparedListener {
                                 isPreparing = false
@@ -392,27 +425,31 @@ fun SurahReader(
 
                             audio.setOnCompletionListener {
                                 isPlaying = false
+                                isPreparing = false
                                 it.release()
-                                player = null
+                                playerState.value = null
                             }
 
                             audio.setOnErrorListener { mp, _, _ ->
                                 isPlaying = false
                                 isPreparing = false
+                                audioError =
+                                    "Impossible de lire l'audio. Vérifie Internet et réessaie."
                                 mp.release()
-                                player = null
+                                playerState.value = null
                                 true
                             }
 
+                            audio.setDataSource(url)
                             audio.prepareAsync()
+
                         } catch (e: Exception) {
-                            isPreparing = false
-                            player?.release()
-                            player = null
+                            stopAudio()
+                            audioError =
+                                "Erreur de connexion. Vérifie Internet."
                         }
                     }
-                },
-                enabled = !isPreparing
+                }
             ) {
                 Text(
                     when {
@@ -427,14 +464,23 @@ fun SurahReader(
 
             Button(
                 onClick = {
-                    player?.release()
-                    player = null
-                    isPlaying = false
-                    isPreparing = false
+                    stopAudio()
+                    audioError = null
                 }
             ) {
                 Text("⏹ Arrêter")
             }
+        }
+
+        if (audioError != null) {
+            Text(
+                audioError!!,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                color = Color.Red,
+                textAlign = TextAlign.Center
+            )
         }
 
         LazyColumn(
@@ -465,13 +511,42 @@ fun SurahReader(
 @Composable
 fun AudioHome() {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
-        item { SectionTitle("Récitateurs du Coran") }
-        item { FeatureCard("🎧 Mishary Alafasy", "Récitations du Coran") }
-        item { FeatureCard("🎧 Abdul Rahman Al-Sudais", "Récitations du Coran") }
-        item { FeatureCard("🎧 Maher Al-Muaiqly", "Récitations du Coran") }
-        item { FeatureCard("🎧 Abdul Basit", "Récitations du Coran") }
         item {
-            Text("Les lecteurs audio seront ajoutés dans une prochaine étape.")
+            SectionTitle("Récitateurs du Coran")
+        }
+
+        item {
+            FeatureCard(
+                "🎧 Mishary Alafasy",
+                "Récitation disponible depuis une sourate"
+            )
+        }
+
+        item {
+            FeatureCard(
+                "🎧 Abdul Rahman Al-Sudais",
+                "Autre récitant à ajouter"
+            )
+        }
+
+        item {
+            FeatureCard(
+                "🎧 Maher Al-Muaiqly",
+                "Autre récitant à ajouter"
+            )
+        }
+
+        item {
+            FeatureCard(
+                "🎧 Abdul Basit",
+                "Autre récitant à ajouter"
+            )
+        }
+
+        item {
+            Text(
+                "Pour écouter, ouvre une sourate dans l'onglet Coran et appuie sur Jouer."
+            )
         }
     }
 }
@@ -533,7 +608,9 @@ fun FeatureCard(
                 fontWeight = FontWeight.Bold,
                 color = Green
             )
+
             Spacer(modifier = Modifier.height(5.dp))
+
             Text(
                 description,
                 fontSize = 13.sp,
