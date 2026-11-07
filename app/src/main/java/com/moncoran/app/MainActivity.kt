@@ -1,9 +1,8 @@
-
 package com.moncoran.app
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
-import android.net.Uri
+import android.media.PlaybackParams
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,6 +11,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,10 +28,12 @@ import androidx.compose.ui.unit.sp
 private val Green = Color(0xFF075B46)
 private val Gold = Color(0xFFD6AE58)
 private val Background = Color(0xFFF5F7F2)
+private val Highlight = Color(0xFFDDEBD5)
 
 data class AyahData(
     val number: Int,
-    val text: String
+    val text: String,
+    val globalNumber: Int
 )
 
 data class SurahData(
@@ -38,6 +41,17 @@ data class SurahData(
     val name: String,
     val ayahs: List<AyahData>
 )
+
+data class Reciter(val label: String, val id: String)
+
+private val reciters = listOf(
+    Reciter("Mishary Alafasy", "ar.alafasy"),
+    Reciter("Abdul Rahman Al-Sudais", "ar.abdurrahmaansudais"),
+    Reciter("Maher Al-Muaiqly", "ar.mahermuaiqly"),
+    Reciter("Abdul Basit", "ar.abdulbasitmurattal")
+)
+
+private val speeds = listOf(1f, 1.25f, 1.5f, 0.75f)
 
 private val surahNames = listOf(
     "الْفَاتِحَةُ", "الْبَقَرَةُ", "آلُ عِمْرَانَ", "النِّسَاءُ",
@@ -73,6 +87,7 @@ private val surahNames = listOf(
 
 fun loadQuran(context: android.content.Context): List<SurahData> {
     val grouped = linkedMapOf<Int, MutableList<AyahData>>()
+    var global = 0
 
     context.assets.open("quran-uthmani.txt")
         .bufferedReader(Charsets.UTF_8).use { reader ->
@@ -90,9 +105,10 @@ fun loadQuran(context: android.content.Context): List<SurahData> {
                         ayahNumber != null &&
                         arabicText.isNotEmpty()
                     ) {
+                        global++
                         grouped.getOrPut(surahNumber) {
                             mutableListOf()
-                        }.add(AyahData(ayahNumber, arabicText))
+                        }.add(AyahData(ayahNumber, arabicText, global))
                     }
                 }
             }
@@ -328,36 +344,125 @@ fun SurahReader(
     surah: SurahData,
     onBack: () -> Unit
 ) {
-    val context = LocalContext.current
-
-    var player by remember {
-        mutableStateOf<MediaPlayer?>(null)
-    }
+    var player by remember { mutableStateOf<MediaPlayer?>(null) }
 
     var isPlaying by remember { mutableStateOf(false) }
     var isPreparing by remember { mutableStateOf(false) }
     var audioError by remember { mutableStateOf<String?>(null) }
 
+    var currentIndex by remember { mutableIntStateOf(-1) }
+    var repeatOne by remember { mutableStateOf(false) }
+    var speedIndex by remember { mutableIntStateOf(0) }
+    var reciterIndex by remember { mutableIntStateOf(0) }
+    var menuOpen by remember { mutableStateOf(false) }
+
+    val listState = rememberLazyListState()
+
     fun stopAudio() {
         player?.let {
             try {
-                if (it.isPlaying) {
-                    it.stop()
-                }
+                if (it.isPlaying) it.stop()
             } catch (_: Exception) {
             }
             it.release()
         }
-
         player = null
         isPlaying = false
         isPreparing = false
+    }
+
+    fun playAyah(index: Int) {
+        if (index !in surah.ayahs.indices) {
+            stopAudio()
+            currentIndex = -1
+            return
+        }
+
+        player?.let {
+            try {
+                it.release()
+            } catch (_: Exception) {
+            }
+        }
+        player = null
+
+        currentIndex = index
+        isPreparing = true
+        isPlaying = false
+        audioError = null
+
+        val url =
+            "https://cdn.islamic.network/quran/audio/128/" +
+                "${reciters[reciterIndex].id}/${surah.ayahs[index].globalNumber}.mp3"
+
+        try {
+            val mp = MediaPlayer()
+            player = mp
+
+            mp.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+
+            mp.setOnPreparedListener { m ->
+                isPreparing = false
+                try {
+                    m.playbackParams = PlaybackParams().setSpeed(speeds[speedIndex])
+                } catch (_: Exception) {
+                }
+                m.start()
+                isPlaying = true
+            }
+
+            mp.setOnCompletionListener {
+                if (repeatOne) playAyah(index) else playAyah(index + 1)
+            }
+
+            mp.setOnErrorListener { _, what, extra ->
+                audioError = "Erreur de lecture ($what, $extra). Vérifie Internet."
+                stopAudio()
+                true
+            }
+
+            mp.setDataSource(url)
+            mp.prepareAsync()
+        } catch (e: Exception) {
+            stopAudio()
+            audioError = "Erreur audio : ${e.message ?: "connexion impossible"}"
+        }
+    }
+
+    fun togglePlayPause() {
+        val p = player
+        if (p != null && !isPreparing) {
+            try {
+                if (isPlaying) {
+                    p.pause()
+                    isPlaying = false
+                } else {
+                    p.start()
+                    isPlaying = true
+                }
+            } catch (_: Exception) {
+                playAyah(maxOf(currentIndex, 0))
+            }
+        } else if (p == null) {
+            playAyah(maxOf(currentIndex, 0))
+        }
     }
 
     DisposableEffect(surah.number) {
         onDispose {
             player?.release()
             player = null
+        }
+    }
+
+    LaunchedEffect(currentIndex) {
+        if (currentIndex >= 0) {
+            listState.animateScrollToItem(currentIndex)
         }
     }
 
@@ -378,7 +483,7 @@ fun SurahReader(
             "سورة ${surah.name}",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
+                .padding(8.dp),
             color = Green,
             fontSize = 27.sp,
             fontWeight = FontWeight.Bold,
@@ -392,249 +497,133 @@ fun SurahReader(
             textAlign = TextAlign.Center
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                enabled = !isPreparing,
-                onClick = {
-                    audioError = null
-
-                    if (isPlaying) {
-                        player?.pause()
-                        isPlaying = false
-                    } else if (player != null) {
-                        try {
-                            player?.start()
-                            isPlaying = true
-                        } catch (e: Exception) {
-                            audioError = "Impossible de reprendre la lecture."
-                            stopAudio()
-                        }
-                    } else {
-                        try {
-                            isPreparing = true
-
-                            val url =
-                                "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${surah.number}.mp3"
-
-                            val audio = MediaPlayer()
-                            player = audio
-
-                            audio.setAudioAttributes(
-                                AudioAttributes.Builder()
-                                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                                    .build()
-                            )
-
-                            audio.setOnPreparedListener { mp ->
-                                isPreparing = false
-                                mp.start()
-                                isPlaying = true
-                            }
-
-                            audio.setOnCompletionListener { mp ->
-                                isPlaying = false
-                                isPreparing = false
-                                mp.release()
-                                player = null
-                            }
-
-                            audio.setOnErrorListener { mp, _, _ ->
-                                isPlaying = false
-                                isPreparing = false
-                                audioError =
-                                    "Erreur de lecture. Vérifie Internet et réessaie."
-                                mp.release()
-                                player = null
-                                true
-                            }
-
-                            audio.setDataSource(
-                                context,
-                                Uri.parse(url)
-                            )
-
-                            audio.prepareAsync()
-
-                        } catch (e: Exception) {
-                            stopAudio()
-                            audioError =
-                                "Erreur audio : ${e.message ?: "connexion impossible"}"
-                        }
-                    }
-                }
-            ) {
-                Text(
-                    when {
-                        isPreparing -> "Chargement..."
-                        isPlaying -> "⏸ Pause"
-                        else -> "▶ Jouer"
-                    }
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Button(
-                onClick = {
-                    stopAudio()
-                    audioError = null
-                }
-            ) {
-                Text("⏹ Arrêter")
-            }
-        }
-
         if (audioError != null) {
             Text(
                 audioError!!,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(8.dp),
                 color = Color.Red,
                 textAlign = TextAlign.Center
             )
         }
 
         LazyColumn(
+            state = listState,
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
+                .weight(1f)
+                .fillMaxWidth()
         ) {
-            items(surah.ayahs) { ayah ->
+            itemsIndexed(surah.ayahs) { index, ayah ->
                 Text(
                     "${ayah.text} ۝${ayah.number}",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp),
+                        .background(
+                            if (index == currentIndex) Highlight
+                            else Color.Transparent
+                        )
+                        .clickable { playAyah(index) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     color = Color(0xFF202820),
                     fontSize = 25.sp,
                     lineHeight = 48.sp,
                     textAlign = TextAlign.Right
                 )
 
-                HorizontalDivider(
-                    color = Color(0xFFE5E8E1)
-                )
+                HorizontalDivider(color = Color(0xFFE5E8E1))
             }
         }
-    }
-}
 
-@Composable
-fun AudioHome() {
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        item {
-            SectionTitle("Récitateurs du Coran")
-        }
+        // Barre du lecteur
+        Surface(
+            color = Color(0xFF111111),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box {
+                    Text(
+                        "🎙 ${reciters[reciterIndex].label}  ▾",
+                        color = Color.White,
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .clickable { menuOpen = true }
+                            .padding(6.dp)
+                    )
+                    DropdownMenu(
+                        expanded = menuOpen,
+                        onDismissRequest = { menuOpen = false }
+                    ) {
+                        reciters.forEachIndexed { i, r ->
+                            DropdownMenuItem(
+                                text = { Text(r.label) },
+                                onClick = {
+                                    menuOpen = false
+                                    reciterIndex = i
+                                    if (currentIndex >= 0 && (isPlaying || isPreparing)) {
+                                        playAyah(currentIndex)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
 
-        item {
-            FeatureCard(
-                "🎧 Mishary Alafasy",
-                "Récitation disponible depuis une sourate"
-            )
-        }
+                Text(
+                    if (currentIndex >= 0)
+                        "Verset ${surah.ayahs[currentIndex].number} / ${surah.ayahs.size}"
+                    else "Touche un verset ou appuie sur ▶",
+                    color = Color.LightGray,
+                    fontSize = 12.sp
+                )
 
-        item {
-            FeatureCard(
-                "🎧 Abdul Rahman Al-Sudais",
-                "Autre récitant à ajouter"
-            )
-        }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = {
+                        repeatOne = !repeatOne
+                    }) {
+                        Text(
+                            "🔁",
+                            fontSize = 22.sp,
+                            color = if (repeatOne) Gold else Color.Gray
+                        )
+                    }
 
-        item {
-            FeatureCard(
-                "🎧 Maher Al-Muaiqly",
-                "Autre récitant à ajouter"
-            )
-        }
+                    TextButton(onClick = {
+                        if (currentIndex > 0) playAyah(currentIndex - 1)
+                    }) { Text("⏮", fontSize = 22.sp, color = Color.White) }
 
-        item {
-            FeatureCard(
-                "🎧 Abdul Basit",
-                "Autre récitant à ajouter"
-            )
-        }
+                    Button(
+                        onClick = { togglePlayPause() },
+                        enabled = !isPreparing,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.White,
+                            contentColor = Green,
+                            disabledContainerColor = Color.LightGray,
+                            disabledContentColor = Green
+                        )
+                    ) {
+                        Text(
+                            when {
+                                isPreparing -> "…"
+                                isPlaying -> "⏸"
+                                else -> "▶"
+                            },
+                            fontSize = 20.sp
+                        )
+                    }
 
-        item {
-            Text(
-                "Pour écouter, ouvre une sourate dans l'onglet Coran et appuie sur Jouer."
-            )
-        }
-    }
-}
+                    TextButton(onClick = {
+                        if (currentIndex >= 0) playAyah(currentIndex + 1)
+                    }) { Text("⏭", fontSize = 22.sp, color = Color.White) }
 
-@Composable
-fun PrayerHome() {
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        item { SectionTitle("Heures de prière") }
-        item { FeatureCard("Fajr", "Prière de l'aube") }
-        item { FeatureCard("Dhuhr", "Prière de midi") }
-        item { FeatureCard("Asr", "Prière de l'après-midi") }
-        item { FeatureCard("Maghrib", "Prière du coucher du soleil") }
-        item { FeatureCard("Isha", "Prière de la nuit") }
-        item { FeatureCard("🧭 Qibla", "Direction de La Mecque") }
-    }
-}
-
-@Composable
-fun MoreHome() {
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
-        item { SectionTitle("Autres fonctionnalités") }
-        item { FeatureCard("📿 Tasbih", "Compteur de glorifications") }
-        item { FeatureCard("🤲 Invocations", "Adhkar du matin et du soir") }
-        item { FeatureCard("📜 Histoires des prophètes", "Découvrir les prophètes") }
-        item { FeatureCard("🌙 Mode sombre", "Personnaliser l'affichage") }
-        item { FeatureCard("🌍 Langue", "Arabe et français") }
-    }
-}
-
-@Composable
-fun SectionTitle(title: String) {
-    Text(
-        title,
-        fontSize = 22.sp,
-        fontWeight = FontWeight.Bold,
-        color = Green,
-        modifier = Modifier.padding(vertical = 12.dp)
-    )
-}
-
-@Composable
-fun FeatureCard(
-    title: String,
-    description: String
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 10.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        ),
-        shape = RoundedCornerShape(14.dp)
-    ) {
-        Column(modifier = Modifier.padding(17.dp)) {
-            Text(
-                title,
-                fontSize = 17.sp,
-                fontWeight = FontWeight.Bold,
-                color = Green
-            )
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            Text(
-                description,
-                fontSize = 13.sp,
-                color = Color.DarkGray
-            )
-        }
-    }
-}
+                    TextButton(onClick = {
+                        speedIndex = (speedIndex + 1) % speeds.size
+                        try {
+                            player?.let {
