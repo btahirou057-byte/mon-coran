@@ -144,4 +144,4 @@ fun SurahReader(
     }
 
     fun changeSpeed() {
-        speedIndex = (speedIndex + 1) % speeds.s
+speedIndex = if (speedIndex >= speeds.size - 1) 0 else speedIndex + 1
