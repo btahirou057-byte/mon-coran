@@ -149,7 +149,9 @@ fun QuranApp() {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            Header()
+                    if (selectedTab != 0 || selectedSurah == null) {
+                Header()
+                    }
 
             when (selectedTab) {
                 0 -> {
