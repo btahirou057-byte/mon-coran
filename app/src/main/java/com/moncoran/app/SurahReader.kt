@@ -145,3 +145,125 @@ fun SurahReader(
 
     fun changeSpeed() {
 speedIndex = if (speedIndex >= speeds.size - 1) 0 else speedIndex + 1
+        try {
+            val p = player
+            if (p != null && isPlaying) {
+                p.playbackParams = PlaybackParams().setSpeed(speeds[speedIndex])
+            }
+        } catch (_: Exception) {
+        }
+    }
+
+    DisposableEffect(surah.number) {
+        onDispose {
+            player?.release()
+            player = null
+        }
+    }
+
+    LaunchedEffect(currentIndex) {
+        if (currentIndex >= 0) {
+            listState.animateScrollToItem(currentIndex)
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            "‹ Retour",
+            modifier = Modifier
+                .clickable {
+                    stopAudio()
+                    onBack()
+                }
+                .padding(16.dp),
+            color = Green,
+            fontWeight = FontWeight.Bold
+        )
+
+        Text(
+            "سورة ${surah.name}",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            color = Green,
+            fontSize = 27.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            "${surah.ayahs.size} versets",
+            modifier = Modifier.fillMaxWidth(),
+            color = Color.DarkGray,
+            textAlign = TextAlign.Center
+        )
+
+        if (audioError != null) {
+            Text(
+                audioError!!,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                color = Color.Red,
+                textAlign = TextAlign.Center
+            )
+        }
+
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            itemsIndexed(surah.ayahs) { index, ayah ->
+                Text(
+                    "${ayah.text} ۝${ayah.number}",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(
+                            if (index == currentIndex) Highlight
+                            else Color.Transparent
+                        )
+                        .clickable { playAyah(index) }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    color = Color(0xFF202820),
+                    fontSize = 25.sp,
+                    lineHeight = 48.sp,
+                    textAlign = TextAlign.Right
+                )
+                HorizontalDivider(color = Color(0xFFE5E8E1))
+            }
+        }
+
+        PlayerBar(
+            reciterLabel = reciters[reciterIndex].label,
+            reciterNames = reciters.map { it.label },
+            statusText = if (currentIndex >= 0)
+                "Verset ${surah.ayahs[currentIndex].number} / ${surah.ayahs.size}"
+            else "Touche un verset ou appuie sur ▶",
+            isPlaying = isPlaying,
+            isPreparing = isPreparing,
+            repeatOne = repeatOne,
+            speedLabel = "${speeds[speedIndex]}x",
+            menuOpen = menuOpen,
+            onMenuOpen = { menuOpen = it },
+            onPickReciter = { i ->
+                menuOpen = false
+                reciterIndex = i
+                if (currentIndex >= 0 && (isPlaying || isPreparing)) {
+                    playAyah(currentIndex)
+                }
+            },
+            onRepeat = { repeatOne = !repeatOne },
+            onPrev = { if (currentIndex > 0) playAyah(currentIndex - 1) },
+            onToggle = { togglePlayPause() },
+            onNext = { if (currentIndex >= 0) playAyah(currentIndex + 1) },
+            onSpeed = { changeSpeed() },
+            onStop = {
+                stopAudio()
+                currentIndex = -1
+                audioError = null
+            }
+        )
+    }
+}
