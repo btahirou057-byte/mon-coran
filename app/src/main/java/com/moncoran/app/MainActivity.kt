@@ -124,7 +124,7 @@ fun QuranApp() {
     var selectedTab by remember { mutableIntStateOf(0) }
     var selectedSurah by remember { mutableStateOf<SurahData?>(null) }
 
-    val tabs = listOf("Coran", "Audio", "Prières", "Plus")
+        val tabs = listOf("Coran", "Audio", "Prières", "Qibla", "Plus")
 
     Scaffold(
         containerColor = Background,
@@ -137,7 +137,7 @@ fun QuranApp() {
                             selectedTab = index
                             selectedSurah = null
                         },
-                        icon = { Text(listOf("📖", "🎧", "🕌", "☪")[index]) },
+                                            icon = { Text(listOf("📖", "🎧", "🕌", "🧭", "☪")[index]) },
                         label = { Text(title) }
                     )
                 }
@@ -168,7 +168,8 @@ fun QuranApp() {
                 }
                 1 -> AudioHome()
                 2 -> PrayerHome()
-                3 -> MoreHome()
+                            3 -> QiblaScreen()
+            4 -> MoreHome()
             }
         }
     }
