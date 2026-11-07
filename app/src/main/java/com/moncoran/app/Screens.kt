@@ -39,7 +39,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import com.batoulapps.adhan.Qibla
-
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 private val ScreenGreen = Color(0xFF075B46)
 private val ScreenGold = Color(0xFFD6AE58)
 
@@ -392,10 +395,10 @@ fun AudioHome() {
 }
 
 @Composable
-fun MoreHome() {
+fun MoreHome(onTasbih: () -> Unit = {}) {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         item { SectionTitle("Autres fonctionnalités") }
-        item { FeatureCard("📿 Tasbih", "Compteur de glorifications") }
+            item { FeatureCard("📿 Tasbih", "Compteur de glorifications", onTasbih) }
         item { FeatureCard("🤲 Invocations", "Adhkar du matin et du soir") }
         item { FeatureCard("📜 Histoires des prophètes", "Découvrir les prophètes") }
         item { FeatureCard("🌙 Mode sombre", "Personnaliser l'affichage") }
@@ -415,11 +418,12 @@ fun SectionTitle(title: String) {
 }
 
 @Composable
-fun FeatureCard(title: String, description: String) {
+fun FeatureCard(title: String, description: String, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 10.dp),
+                        .padding(bottom = 10.dp)
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -495,5 +499,65 @@ fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
         }
         Spacer(Modifier.height(16.dp))
         Text("Tiens le téléphone à plat. La Kaaba 🕋 indique la direction de la Mecque.")
+    }
+}
+@Composable
+fun TasbihScreen(onBack: () -> Unit) {
+    var count by remember { mutableStateOf(0) }
+    var target by remember { mutableStateOf(33) }
+    val haptic = LocalHapticFeedback.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(Modifier.fillMaxWidth()) {
+            TextButton(onClick = onBack) {
+                Text("‹ Retour", color = ScreenGreen)
+            }
+        }
+        Text("Tasbih", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = ScreenGreen)
+        Spacer(Modifier.height(12.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(33, 99, 100).forEach { t ->
+                Button(
+                    onClick = { target = t; count = 0 },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (target == t) ScreenGreen else Color.Gray
+                    )
+                ) { Text("$t") }
+            }
+        }
+        Spacer(Modifier.height(32.dp))
+        Box(
+            modifier = Modifier
+                .size(240.dp)
+                .clip(CircleShape)
+                .background(ScreenGreen)
+                .clickable {
+                    count++
+                    if (count == target) {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    } else {
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text("$count", fontSize = 72.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                Text("/ $target", fontSize = 22.sp, color = ScreenGold)
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        if (count >= target) {
+            Text("Terminé ✅ Qu'Allah accepte", fontSize = 18.sp, color = ScreenGreen)
+        } else {
+            Text("Appuie sur le cercle pour compter")
+        }
+        Spacer(Modifier.height(24.dp))
+        OutlinedButton(onClick = { count = 0 }) { Text("Remise à zéro") }
     }
 }
