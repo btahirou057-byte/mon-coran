@@ -3,6 +3,7 @@ package com.moncoran.app
 
 import android.media.AudioAttributes
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -39,35 +40,35 @@ data class SurahData(
 )
 
 private val surahNames = listOf(
-    "الفاتحة", "البقرة", "آل عمران", "النساء",
-    "المائدة", "الأنعام", "الأعراف", "الأنفال",
-    "التوبة", "يونس", "هود", "يوسف",
-    "الرعد", "إبراهيم", "الحجر", "النحل",
-    "الإسراء", "الكهف", "مريم", "طه",
-    "الأنبياء", "الحج", "المؤمنون", "النور",
-    "الفرقان", "الشعراء", "النمل", "القصص",
-    "العنكبوت", "الروم", "لقمان", "السجدة",
-    "الأحزاب", "سبأ", "فاطر", "يس",
-    "الصافات", "ص", "الزمر", "غافر",
-    "فصلت", "الشورى", "الزخرف", "الدخان",
-    "الجاثية", "الأحقاف", "محمد", "الفتح",
-    "الحجرات", "ق", "الذاريات", "الطور",
-    "النجم", "القمر", "الرحمن", "الواقعة",
-    "الحديد", "المجادلة", "الحشر", "الممتحنة",
-    "الصف", "الجمعة", "المنافقون", "التغابن",
-    "الطلاق", "التحريم", "الملك", "القلم",
-    "الحاقة", "المعارج", "نوح", "الجن",
-    "المزمل", "المدثر", "القيامة", "الإنسان",
-    "المرسلات", "النبأ", "النازعات", "عبس",
-    "التكوير", "الانفطار", "المطففين", "الانشقاق",
-    "البروج", "الطارق", "الأعلى", "الغاشية",
-    "الفجر", "البلد", "الشمس", "الليل",
-    "الضحى", "الشرح", "التين", "العلق",
-    "القدر", "البينة", "الزلزلة", "العاديات",
-    "القارعة", "التكاثر", "العصر", "الهمزة",
-    "الفيل", "قريش", "الماعون", "الكوثر",
-    "الكافرون", "النصر", "المسد", "الإخلاص",
-    "الفلق", "الناس"
+    "الْفَاتِحَةُ", "الْبَقَرَةُ", "آلُ عِمْرَانَ", "النِّسَاءُ",
+    "الْمَائِدَةُ", "الْأَنْعَامُ", "الْأَعْرَافُ", "الْأَنْفَالُ",
+    "التَّوْبَةُ", "يُونُسُ", "هُودٌ", "يُوسُفُ",
+    "الرَّعْدُ", "إِبْرَاهِيمُ", "الْحِجْرُ", "النَّحْلُ",
+    "الْإِسْرَاءُ", "الْكَهْفُ", "مَرْيَمُ", "طَهَ",
+    "الْأَنْبِيَاءُ", "الْحَجُّ", "الْمُؤْمِنُونَ", "النُّورُ",
+    "الْفُرْقَانُ", "الشُّعَرَاءُ", "النَّمْلُ", "الْقَصَصُ",
+    "الْعَنْكَبُوتُ", "الرُّومُ", "لُقْمَانُ", "السَّجْدَةُ",
+    "الْأَحْزَابُ", "سَبَأٌ", "فَاطِرٌ", "يس",
+    "الصَّافَّاتُ", "ص", "الزُّمَرُ", "غَافِرٌ",
+    "فُصِّلَتْ", "الشُّورَى", "الزُّخْرُفُ", "الدُّخَانُ",
+    "الْجَاثِيَةُ", "الْأَحْقَافُ", "مُحَمَّدٌ", "الْفَتْحُ",
+    "الْحُجُرَاتُ", "ق", "الذَّارِيَاتُ", "الطُّورُ",
+    "النَّجْمُ", "الْقَمَرُ", "الرَّحْمَٰنُ", "الْوَاقِعَةُ",
+    "الْحَدِيدُ", "الْمُجَادَلَةُ", "الْحَشْرُ", "الْمُمْتَحَنَةُ",
+    "الصَّفُّ", "الْجُمُعَةُ", "الْمُنَافِقُونَ", "التَّغَابُنُ",
+    "الطَّلَاقُ", "التَّحْرِيمُ", "الْمُلْكُ", "الْقَلَمُ",
+    "الْحَاقَّةُ", "الْمَعَارِجُ", "نُوحٌ", "الْجِنُّ",
+    "الْمُزَّمِّلُ", "الْمُدَّثِّرُ", "الْقِيَامَةُ", "الْإِنْسَانُ",
+    "الْمُرْسَلَاتُ", "النَّبَأُ", "النَّازِعَاتُ", "عَبَسَ",
+    "التَّكْوِيرُ", "الْإِنْفِطَارُ", "الْمُطَفِّفِينَ", "الْإِنْشِقَاقُ",
+    "الْبُرُوجُ", "الطَّارِقُ", "الْأَعْلَى", "الْغَاشِيَةُ",
+    "الْفَجْرُ", "الْبَلَدُ", "الشَّمْسُ", "اللَّيْلُ",
+    "الضُّحَى", "الشَّرْحُ", "التِّينُ", "الْعَلَقُ",
+    "الْقَدْرُ", "الْبَيِّنَةُ", "الزَّلْزَلَةُ", "الْعَادِيَاتُ",
+    "الْقَارِعَةُ", "التَّكَاثُرُ", "الْعَصْرُ", "الْهُمَزَةُ",
+    "الْفِيلُ", "قُرَيْشٌ", "الْمَاعُونُ", "الْكَوْثَرُ",
+    "الْكَافِرُونَ", "النَّصْرُ", "الْمَسَدُ", "الْإِخْلَاصُ",
+    "الْفَلَقُ", "النَّاسُ"
 )
 
 fun loadQuran(context: android.content.Context): List<SurahData> {
@@ -327,7 +328,9 @@ fun SurahReader(
     surah: SurahData,
     onBack: () -> Unit
 ) {
-    val playerState = remember {
+    val context = LocalContext.current
+
+    var player by remember {
         mutableStateOf<MediaPlayer?>(null)
     }
 
@@ -335,18 +338,27 @@ fun SurahReader(
     var isPreparing by remember { mutableStateOf(false) }
     var audioError by remember { mutableStateOf<String?>(null) }
 
-    DisposableEffect(surah.number) {
-        onDispose {
-            playerState.value?.release()
-            playerState.value = null
-        }
-    }
-
     fun stopAudio() {
-        playerState.value?.release()
-        playerState.value = null
+        player?.let {
+            try {
+                if (it.isPlaying) {
+                    it.stop()
+                }
+            } catch (_: Exception) {
+            }
+            it.release()
+        }
+
+        player = null
         isPlaying = false
         isPreparing = false
+    }
+
+    DisposableEffect(surah.number) {
+        onDispose {
+            player?.release()
+            player = null
+        }
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -393,11 +405,16 @@ fun SurahReader(
                     audioError = null
 
                     if (isPlaying) {
-                        playerState.value?.pause()
+                        player?.pause()
                         isPlaying = false
-                    } else if (playerState.value != null) {
-                        playerState.value?.start()
-                        isPlaying = true
+                    } else if (player != null) {
+                        try {
+                            player?.start()
+                            isPlaying = true
+                        } catch (e: Exception) {
+                            audioError = "Impossible de reprendre la lecture."
+                            stopAudio()
+                        }
                     } else {
                         try {
                             isPreparing = true
@@ -406,47 +423,49 @@ fun SurahReader(
                                 "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/${surah.number}.mp3"
 
                             val audio = MediaPlayer()
-                            playerState.value = audio
+                            player = audio
 
                             audio.setAudioAttributes(
                                 AudioAttributes.Builder()
                                     .setUsage(AudioAttributes.USAGE_MEDIA)
-                                    .setContentType(
-                                        AudioAttributes.CONTENT_TYPE_MUSIC
-                                    )
+                                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                                     .build()
                             )
 
-                            audio.setOnPreparedListener {
+                            audio.setOnPreparedListener { mp ->
                                 isPreparing = false
-                                it.start()
+                                mp.start()
                                 isPlaying = true
                             }
 
-                            audio.setOnCompletionListener {
+                            audio.setOnCompletionListener { mp ->
                                 isPlaying = false
                                 isPreparing = false
-                                it.release()
-                                playerState.value = null
+                                mp.release()
+                                player = null
                             }
 
                             audio.setOnErrorListener { mp, _, _ ->
                                 isPlaying = false
                                 isPreparing = false
                                 audioError =
-                                    "Impossible de lire l'audio. Vérifie Internet et réessaie."
+                                    "Erreur de lecture. Vérifie Internet et réessaie."
                                 mp.release()
-                                playerState.value = null
+                                player = null
                                 true
                             }
 
-                            audio.setDataSource(url)
+                            audio.setDataSource(
+                                context,
+                                Uri.parse(url)
+                            )
+
                             audio.prepareAsync()
 
                         } catch (e: Exception) {
                             stopAudio()
                             audioError =
-                                "Erreur de connexion. Vérifie Internet."
+                                "Erreur audio : ${e.message ?: "connexion impossible"}"
                         }
                     }
                 }
