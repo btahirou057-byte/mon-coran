@@ -27,6 +27,18 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.delay
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
+import androidx.compose.foundation.border
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import com.batoulapps.adhan.Qibla
 
 private val ScreenGreen = Color(0xFF075B46)
 private val ScreenGold = Color(0xFFD6AE58)
@@ -427,5 +439,61 @@ fun FeatureCard(title: String, description: String) {
                 color = Color.DarkGray
             )
         }
+    }
+}
+@Composable
+fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
+    val context = LocalContext.current
+    var azimuth by remember { mutableStateOf(0f) }
+    val qibla = remember(latitude, longitude) {
+        Qibla(Coordinates(latitude, longitude)).direction.toFloat()
+    }
+
+    DisposableEffect(Unit) {
+        val sm = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val sensor = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
+        val listener = object : SensorEventListener {
+            override fun onSensorChanged(e: SensorEvent) {
+                val r = FloatArray(9)
+                val o = FloatArray(3)
+                SensorManager.getRotationMatrixFromVector(r, e.values)
+                SensorManager.getOrientation(r, o)
+                azimuth = Math.toDegrees(o[0].toDouble()).toFloat()
+            }
+            override fun onAccuracyChanged(s: Sensor?, a: Int) {}
+        }
+        sm.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+        onDispose { sm.unregisterListener(listener) }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("Qibla", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text("Direction : ${qibla.toInt()}° depuis le Nord")
+        Spacer(Modifier.height(24.dp))
+        Box(
+            modifier = Modifier
+                .size(280.dp)
+                .clip(CircleShape)
+                .border(4.dp, ScreenGreen, CircleShape)
+                .rotate(qibla - azimuth),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "🕋",
+                fontSize = 56.sp,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 12.dp)
+            )
+            Text("▲", fontSize = 100.sp, color = ScreenGold)
+        }
+        Spacer(Modifier.height(16.dp))
+        Text("Tiens le téléphone à plat. La Kaaba 🕋 indique la direction de la Mecque.")
     }
 }
