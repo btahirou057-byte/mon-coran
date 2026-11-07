@@ -535,7 +535,6 @@ fun SurahReader(
             }
         }
 
-        // Barre du lecteur
         Surface(
             color = Color(0xFF111111),
             modifier = Modifier.fillMaxWidth()
@@ -627,3 +626,4 @@ fun SurahReader(
                         speedIndex = (speedIndex + 1) % speeds.size
                         try {
                             player?.let {
+                           
