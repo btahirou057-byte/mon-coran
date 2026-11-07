@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.batoulapps.adhan.CalculationMethod
 import com.batoulapps.adhan.Coordinates
-import com.batoulapps.adhan.DateComponents
+import com.batoulapps.adhan.data.DateComponents
 import com.batoulapps.adhan.PrayerTimes
 import java.text.SimpleDateFormat
 import java.util.Calendar
