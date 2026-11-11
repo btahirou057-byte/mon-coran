@@ -396,11 +396,16 @@ fun AudioHome() {
 
 @Composable
 fun MoreHome(onTasbih: () -> Unit = {}, onInvocations: () -> Unit = {}) {
+        var showProphets by remember { mutableStateOf(false) }
+    if (showProphets) {
+        ProphetsScreen(onBack = { showProphets = false })
+        return
+    }
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         item { SectionTitle("Autres fonctionnalités") }
             item { FeatureCard("📿 Tasbih", "Compteur de glorifications", onTasbih) }
     item { FeatureCard("🤲 Invocations", "Adhkar du matin et du soir", onInvocations) }
-        item { FeatureCard("📜 Histoires des prophètes", "Découvrir les prophètes") }
+    item { FeatureCard("📜 Histoires des prophètes", "Découvrir les prophètes", { showProphets = true }) }
         item { FeatureCard("🌙 Mode sombre", "Personnaliser l'affichage") }
         item { FeatureCard("🌍 Langue", "Arabe et français") }
     }
