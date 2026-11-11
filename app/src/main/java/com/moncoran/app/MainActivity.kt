@@ -124,6 +124,7 @@ fun QuranApp() {
     var selectedTab by remember { mutableIntStateOf(0) }
     var selectedSurah by remember { mutableStateOf<SurahData?>(null) }
     var showTasbih by remember { mutableStateOf(false) }
+    var showInvocations by remember { mutableStateOf(false) }
         val tabs = listOf("Coran", "Audio", "Prières", "Qibla", "Plus")
 
     Scaffold(
@@ -135,6 +136,7 @@ fun QuranApp() {
                         selected = selectedTab == index,
                         onClick = {
                             selectedTab = index
+    showInvocations = false
                             selectedSurah = null
                             showTasbih = false
                         },
@@ -174,8 +176,10 @@ fun QuranApp() {
                             3 -> QiblaScreen()
                         4 -> if (showTasbih) {
                 TasbihScreen(onBack = { showTasbih = false })
-            } else {
-                MoreHome(onTasbih = { showTasbih = true })
+} else if (showInvocations) {
+    InvocationsScreen(onBack = { showInvocations = false })
+} else {
+    MoreHome(onTasbih = { showTasbih = true }, onInvocations = { showInvocations = true })
                         }
             }
         }
