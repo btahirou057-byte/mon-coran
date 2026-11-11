@@ -124,5 +124,36 @@ private fun DhikrCard(dhikr: Dhikr) {
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                text = dhikr.arabic,
+                fontSize = 22.sp,
+                lineHeight = 36.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.End,
+                modifier = Modifier.fillMaxWidth()
+            )
             Text(
-                text = d
+                text = dhikr.french,
+                fontSize = 15.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Répétitions : ${dhikr.count}", fontSize = 13.sp)
+                Button(
+                    onClick = { if (remaining > 0) remaining-- },
+                    enabled = remaining > 0,
+                    colors = ButtonDefaults.buttonColors(containerColor = Green)
+                ) {
+                    Text(if (remaining > 0) "$remaining restant(s)" else "Terminé ✓")
+                }
+            }
+            if (remaining != dhikr.count) {
+                TextButton(onClick = { remaining = dhikr.count }) { Text("Recommencer") }
+            }
+        }
+    }
+}
