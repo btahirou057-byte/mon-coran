@@ -19,9 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-internal val Green = Color(0xFF075B46)
+internal val Green: Color get() = if (isDarkMode) Color(0xFF2E8F70) else Color(0xFF075B46)
 internal val Gold = Color(0xFFD6AE58)
-internal val Background = Color(0xFFF5F7F2)
+internal val Background: Color get() = if (isDarkMode) Color(0xFF121A17) else Color(0xFFF5F7F2)
 
 data class AyahData(
     val number: Int,
