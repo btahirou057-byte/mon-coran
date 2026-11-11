@@ -395,11 +395,11 @@ fun AudioHome() {
 }
 
 @Composable
-fun MoreHome(onTasbih: () -> Unit = {}) {
+fun MoreHome(onTasbih: () -> Unit = {}, onInvocations: () -> Unit = {}) {
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         item { SectionTitle("Autres fonctionnalités") }
             item { FeatureCard("📿 Tasbih", "Compteur de glorifications", onTasbih) }
-        item { FeatureCard("🤲 Invocations", "Adhkar du matin et du soir") }
+    item { FeatureCard("🤲 Invocations", "Adhkar du matin et du soir", onInvocations) }
         item { FeatureCard("📜 Histoires des prophètes", "Découvrir les prophètes") }
         item { FeatureCard("🌙 Mode sombre", "Personnaliser l'affichage") }
         item { FeatureCard("🌍 Langue", "Arabe et français") }
