@@ -107,6 +107,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         isDarkMode = getSharedPreferences("settings", MODE_PRIVATE).getBoolean("dark", false)
+        appLang = loadLang(this)
         setContent {
             MaterialTheme(
                 colorScheme = if (isDarkMode) darkColorScheme(primary = Green) else lightColorScheme(primary = Green)
@@ -130,7 +131,13 @@ fun QuranApp() {
     var selectedSurah by remember { mutableStateOf<SurahData?>(null) }
     var showTasbih by remember { mutableStateOf(false) }
     var showInvocations by remember { mutableStateOf(false) }
-        val tabs = listOf("Coran", "Audio", "Prières", "Qibla", "Plus")
+    val tabs = listOf(
+        tr("Coran", "Quran", "古兰经", "القرآن"),
+        tr("Audio", "Audio", "音频", "الصوتيات"),
+        tr("Prières", "Prayers", "礼拜", "الصلاة"),
+        tr("Qibla", "Qibla", "朝向", "القبلة"),
+        tr("Plus", "More", "更多", "المزيد")
+    )
 
     Scaffold(
         containerColor = Background,
@@ -141,11 +148,11 @@ fun QuranApp() {
                         selected = selectedTab == index,
                         onClick = {
                             selectedTab = index
-    showInvocations = false
+                            showInvocations = false
                             selectedSurah = null
                             showTasbih = false
                         },
-                                            icon = { Text(listOf("📖", "🎧", "🕌", "🧭", "☪")[index]) },
+                        icon = { Text(listOf("📖", "🎧", "🕌", "🧭", "☪")[index]) },
                         label = { Text(title) }
                     )
                 }
@@ -157,9 +164,9 @@ fun QuranApp() {
                 .fillMaxSize()
                 .padding(padding)
         ) {
-                    if (selectedTab != 0 || selectedSurah == null) {
+            if (selectedTab != 0 || selectedSurah == null) {
                 Header()
-                    }
+            }
 
             when (selectedTab) {
                 0 -> {
@@ -178,14 +185,14 @@ fun QuranApp() {
                 }
                 1 -> AudioHome()
                 2 -> PrayerHome()
-                            3 -> QiblaScreen()
-                        4 -> if (showTasbih) {
-                TasbihScreen(onBack = { showTasbih = false })
-} else if (showInvocations) {
-    InvocationsScreen(onBack = { showInvocations = false })
-} else {
-    MoreHome(onTasbih = { showTasbih = true }, onInvocations = { showInvocations = true })
-                        }
+                3 -> QiblaScreen()
+                4 -> if (showTasbih) {
+                    TasbihScreen(onBack = { showTasbih = false })
+                } else if (showInvocations) {
+                    InvocationsScreen(onBack = { showInvocations = false })
+                } else {
+                    MoreHome(onTasbih = { showTasbih = true }, onInvocations = { showInvocations = true })
+                }
             }
         }
     }
@@ -206,7 +213,10 @@ fun Header() {
             fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
-        Text("Votre compagnon spirituel", color = Color.White)
+        Text(
+            tr("Votre compagnon spirituel", "Your spiritual companion", "您的灵修伴侣", "رفيقك الروحي"),
+            color = Color.White
+        )
     }
 }
 
@@ -218,7 +228,12 @@ fun QuranHome(
 ) {
     if (error != null) {
         Text(
-            "Erreur de lecture du Coran : $error",
+            tr(
+                "Erreur de lecture du Coran : $error",
+                "Error reading the Quran: $error",
+                "读取古兰经出错：$error",
+                "خطأ في قراءة القرآن: $error"
+            ),
             modifier = Modifier.padding(20.dp),
             color = Color.Red
         )
@@ -229,7 +244,7 @@ fun QuranHome(
         modifier = Modifier.padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        item { SectionTitle("Le Saint Coran") }
+        item { SectionTitle(tr("Le Saint Coran", "The Holy Quran", "神圣的古兰经", "القرآن الكريم")) }
 
         item {
             Card(colors = CardDefaults.cardColors(containerColor = Green)) {
@@ -240,13 +255,29 @@ fun QuranHome(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text("الْقُرْآنُ الْكَرِيمُ", color = Gold, fontSize = 30.sp)
-                    Text("Lisez et méditez le Saint Coran", color = Color.White)
-                    Text("${surahs.size} sourates disponibles", color = Color.White)
+                    Text(
+                        tr(
+                            "Lisez et méditez le Saint Coran",
+                            "Read and reflect on the Holy Quran",
+                            "阅读并思考古兰经",
+                            "اقرأ القرآن الكريم وتدبّره"
+                        ),
+                        color = Color.White
+                    )
+                    Text(
+                        tr(
+                            "${surahs.size} sourates disponibles",
+                            "${surahs.size} surahs available",
+                            "共 ${surahs.size} 章可读",
+                            "${surahs.size} سورة متاحة"
+                        ),
+                        color = Color.White
+                    )
                 }
             }
         }
 
-        item { SectionTitle("Les sourates") }
+        item { SectionTitle(tr("Les sourates", "Surahs", "章节", "السور")) }
 
         items(surahs) { surah ->
             Card(
@@ -265,12 +296,22 @@ fun QuranHome(
                 ) {
                     Column {
                         Text(
-                            "Sourate ${surah.number}",
+                            tr(
+                                "Sourate ${surah.number}",
+                                "Surah ${surah.number}",
+                                "第 ${surah.number} 章",
+                                "سورة ${surah.number}"
+                            ),
                             color = Green,
                             fontWeight = FontWeight.Bold
                         )
                         Text(
-                            "${surah.ayahs.size} versets",
+                            tr(
+                                "${surah.ayahs.size} versets",
+                                "${surah.ayahs.size} verses",
+                                "${surah.ayahs.size} 节",
+                                "${surah.ayahs.size} آية"
+                            ),
                             color = TextSecondary,
                             fontSize = 13.sp
                         )
