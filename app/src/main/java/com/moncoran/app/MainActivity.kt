@@ -106,9 +106,14 @@ fun loadQuran(context: android.content.Context): List<SurahData> {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        isDarkMode = getSharedPreferences("settings", MODE_PRIVATE).getBoolean("dark", false)
         setContent {
-            MaterialTheme(colorScheme = lightColorScheme(primary = Green)) {
-                QuranApp()
+            MaterialTheme(
+                colorScheme = if (isDarkMode) darkColorScheme(primary = Green) else lightColorScheme(primary = Green)
+            ) {
+                Surface(modifier = Modifier.fillMaxSize(), color = Background, contentColor = TextPrimary) {
+                    QuranApp()
+                }
             }
         }
     }
@@ -248,7 +253,7 @@ fun QuranHome(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onSelect(surah) },
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = CardBg),
                 shape = RoundedCornerShape(14.dp)
             ) {
                 Row(
@@ -266,7 +271,7 @@ fun QuranHome(
                         )
                         Text(
                             "${surah.ayahs.size} versets",
-                            color = Color.DarkGray,
+                            color = TextSecondary,
                             fontSize = 13.sp
                         )
                     }
