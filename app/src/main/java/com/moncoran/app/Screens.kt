@@ -550,14 +550,13 @@ fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
         sm.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
         onDispose { sm.unregisterListener(listener) }
     }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-   verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+Column(
+    modifier = Modifier
+        .fillMaxSize()
+        .verticalScroll(rememberScrollState())
+        .padding(24.dp),
+    horizontalAlignment = Alignment.CenterHorizontally
+) {
         Text(tr("Qibla", "Qibla", "朝向", "القبلة"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text(
             tr(
