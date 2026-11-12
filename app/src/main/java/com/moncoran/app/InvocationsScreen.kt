@@ -15,8 +15,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-
-
 data class Dhikr(
     val id: String,
     val arabic: String,
@@ -120,11 +118,11 @@ private fun DhikrCard(dhikr: Dhikr) {
 
     Card(
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = CardBg),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(
+            Text(
                 text = dhikr.arabic,
                 fontSize = 22.sp,
                 lineHeight = 36.sp,
@@ -135,7 +133,7 @@ private fun DhikrCard(dhikr: Dhikr) {
             Text(
                 text = dhikr.french,
                 fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = TextSecondary
             )
             Row(
                 Modifier.fillMaxWidth(),
