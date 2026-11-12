@@ -106,15 +106,28 @@ fun PrayerHome() {
                 if (location != null) {
                     latitude = location.latitude
                     longitude = location.longitude
-                    locationName = "Position GPS"
-                    locationMessage = "Position détectée avec succès."
+                    locationName = tr("Position GPS", "GPS location", "GPS位置", "موقع GPS")
+                    locationMessage = tr(
+                        "Position détectée avec succès.",
+                        "Location detected successfully.",
+                        "已成功获取位置。",
+                        "تم تحديد الموقع بنجاح."
+                    )
                 } else {
-                    locationMessage =
-                        "Position introuvable. Active le GPS et réessaie."
+                    locationMessage = tr(
+                        "Position introuvable. Active le GPS et réessaie.",
+                        "Location not found. Turn on GPS and try again.",
+                        "未找到位置。请开启GPS后重试。",
+                        "تعذّر تحديد الموقع. فعّل GPS وأعد المحاولة."
+                    )
                 }
             } else {
-                locationMessage =
-                    "Autorisation GPS refusée. Choisis une ville manuellement."
+                locationMessage = tr(
+                    "Autorisation GPS refusée. Choisis une ville manuellement.",
+                    "GPS permission denied. Choose a city manually.",
+                    "GPS权限被拒绝。请手动选择城市。",
+                    "تم رفض إذن GPS. اختر مدينة يدويًا."
+                )
             }
         }
 
@@ -144,7 +157,7 @@ fun PrayerHome() {
             .padding(16.dp)
     ) {
         Text(
-            "Heures de prière",
+            tr("Heures de prière", "Prayer times", "礼拜时间", "مواقيت الصلاة"),
             fontSize = 25.sp,
             fontWeight = FontWeight.Bold,
             color = ScreenGreen
@@ -153,7 +166,7 @@ fun PrayerHome() {
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            "Lieu : $locationName",
+            tr("Lieu : ", "Location: ", "地点：", "الموقع: ") + locationName,
             fontSize = 17.sp,
             fontWeight = FontWeight.Bold
         )
@@ -164,7 +177,7 @@ fun PrayerHome() {
             onClick = { menuExpanded = true },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Choisir une ville")
+            Text(tr("Choisir une ville", "Choose a city", "选择城市", "اختر مدينة"))
         }
 
         DropdownMenu(
@@ -206,11 +219,20 @@ fun PrayerHome() {
                     if (location != null) {
                         latitude = location.latitude
                         longitude = location.longitude
-                        locationName = "Position GPS"
-                        locationMessage = "Position détectée avec succès."
+                        locationName = tr("Position GPS", "GPS location", "GPS位置", "موقع GPS")
+                        locationMessage = tr(
+                            "Position détectée avec succès.",
+                            "Location detected successfully.",
+                            "已成功获取位置。",
+                            "تم تحديد الموقع بنجاح."
+                        )
                     } else {
-                        locationMessage =
-                            "Active le GPS de ton téléphone puis réessaie."
+                        locationMessage = tr(
+                            "Active le GPS de ton téléphone puis réessaie.",
+                            "Turn on your phone's GPS and try again.",
+                            "请开启手机GPS后重试。",
+                            "فعّل GPS في هاتفك ثم أعد المحاولة."
+                        )
                     }
                 } else {
                     permissionLauncher.launch(
@@ -223,7 +245,14 @@ fun PrayerHome() {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("📍 Détecter ma position GPS")
+            Text(
+                tr(
+                    "📍 Détecter ma position GPS",
+                    "📍 Detect my GPS location",
+                    "📍 检测我的GPS位置",
+                    "📍 تحديد موقعي عبر GPS"
+                )
+            )
         }
 
         if (locationMessage.isNotEmpty()) {
@@ -238,11 +267,11 @@ fun PrayerHome() {
 
         if (prayerTimes != null) {
             val prayerList = listOf(
-                "Fajr" to prayerTimes.fajr,
-                "Dhuhr" to prayerTimes.dhuhr,
-                "Asr" to prayerTimes.asr,
-                "Maghrib" to prayerTimes.maghrib,
-                "Isha" to prayerTimes.isha
+                tr("Fajr", "Fajr", "晨礼", "الفجر") to prayerTimes.fajr,
+                tr("Dhuhr", "Dhuhr", "晌礼", "الظهر") to prayerTimes.dhuhr,
+                tr("Asr", "Asr", "晡礼", "العصر") to prayerTimes.asr,
+                tr("Maghrib", "Maghrib", "昏礼", "المغرب") to prayerTimes.maghrib,
+                tr("Isha", "Isha", "宵礼", "العشاء") to prayerTimes.isha
             )
 
             val nextPrayer = prayerList.firstOrNull {
@@ -261,7 +290,7 @@ fun PrayerHome() {
                 ).fajr
             }
 
-            val nextName = nextPrayer?.first ?: "Fajr"
+            val nextName = nextPrayer?.first ?: tr("Fajr", "Fajr", "晨礼", "الفجر")
             val nextDate = nextPrayer?.second ?: tomorrowFajr
 
             val remaining = (nextDate.time - currentTime).coerceAtLeast(0)
@@ -278,7 +307,12 @@ fun PrayerHome() {
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Text(
-                        "Prochaine prière : $nextName",
+                        tr(
+                            "Prochaine prière : $nextName",
+                            "Next prayer: $nextName",
+                            "下一次礼拜：$nextName",
+                            "الصلاة القادمة: $nextName"
+                        ),
                         color = Color.White,
                         fontSize = 19.sp,
                         fontWeight = FontWeight.Bold
@@ -294,7 +328,7 @@ fun PrayerHome() {
                     )
 
                     Text(
-                        "Temps restant",
+                        tr("Temps restant", "Time remaining", "剩余时间", "الوقت المتبقي"),
                         color = Color.White
                     )
                 }
@@ -303,7 +337,7 @@ fun PrayerHome() {
             Spacer(modifier = Modifier.height(18.dp))
 
             Text(
-                "Les cinq prières",
+                tr("Les cinq prières", "The five prayers", "五次礼拜", "الصلوات الخمس"),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = ScreenGreen
@@ -341,14 +375,24 @@ fun PrayerHome() {
             }
 
             Text(
-                "Méthode de calcul : Muslim World League.",
+                tr(
+                    "Méthode de calcul : Muslim World League.",
+                    "Calculation method: Muslim World League.",
+                    "计算方法：穆斯林世界联盟。",
+                    "طريقة الحساب: رابطة العالم الإسلامي."
+                ),
                 modifier = Modifier.padding(top = 12.dp),
                 color = TextSecondary,
                 fontSize = 12.sp
             )
         } else {
             Text(
-                "Impossible de calculer les horaires. Vérifie les coordonnées.",
+                tr(
+                    "Impossible de calculer les horaires. Vérifie les coordonnées.",
+                    "Unable to calculate prayer times. Check the coordinates.",
+                    "无法计算礼拜时间。请检查坐标。",
+                    "تعذّر حساب المواقيت. تحقق من الإحداثيات."
+                ),
                 color = Color.Red
             )
         }
@@ -385,13 +429,28 @@ private fun getDeviceLocation(
 
 @Composable
 fun AudioHome() {
+    val pick = tr(
+        "Choisis-le dans le lecteur d'une sourate",
+        "Choose it in a surah's player",
+        "在章节播放器中选择",
+        "اخترهم من مشغّل السورة"
+    )
     LazyColumn(modifier = Modifier.padding(16.dp)) {
-        item { SectionTitle("Récitateurs du Coran") }
-        item { FeatureCard("🎧 Mishary Alafasy", "Choisis-le dans le lecteur d'une sourate") }
-        item { FeatureCard("🎧 Abdul Rahman Al-Sudais", "Choisis-le dans le lecteur d'une sourate") }
-        item { FeatureCard("🎧 Maher Al-Muaiqly", "Choisis-le dans le lecteur d'une sourate") }
-        item { FeatureCard("🎧 Abdul Basit", "Choisis-le dans le lecteur d'une sourate") }
-        item { Text("Pour écouter, ouvre une sourate dans l'onglet Coran et appuie sur ▶.") }
+        item { SectionTitle(tr("Récitateurs du Coran", "Quran reciters", "古兰经诵读者", "قرّاء القرآن")) }
+        item { FeatureCard("🎧 Mishary Alafasy", pick) }
+        item { FeatureCard("🎧 Abdul Rahman Al-Sudais", pick) }
+        item { FeatureCard("🎧 Maher Al-Muaiqly", pick) }
+        item { FeatureCard("🎧 Abdul Basit", pick) }
+        item {
+            Text(
+                tr(
+                    "Pour écouter, ouvre une sourate dans l'onglet Coran et appuie sur ▶.",
+                    "To listen, open a surah in the Quran tab and press ▶.",
+                    "要收听，请在“古兰经”标签中打开一章并点击 ▶。",
+                    "للاستماع، افتح سورة من تبويب القرآن واضغط ▶."
+                )
+            )
+        }
     }
 }
 
@@ -399,26 +458,31 @@ fun AudioHome() {
 fun MoreHome(onTasbih: () -> Unit = {}, onInvocations: () -> Unit = {}) {
     val context = LocalContext.current
     var showProphets by remember { mutableStateOf(false) }
+    var showLang by remember { mutableStateOf(false) }
     if (showProphets) {
         ProphetsScreen(onBack = { showProphets = false })
         return
     }
+    if (showLang) {
+        LanguageDialog(onDismiss = { showLang = false })
+    }
     LazyColumn(modifier = Modifier.padding(16.dp)) {
-        item { SectionTitle("Autres fonctionnalités") }
-        item { FeatureCard("📿 Tasbih", "Compteur de glorifications", onTasbih) }
-        item { FeatureCard("🤲 Invocations", "Adhkar du matin et du soir", onInvocations) }
-        item { FeatureCard("📜 Histoires des prophètes", "Découvrir les prophètes", { showProphets = true }) }
+        item { SectionTitle(tr("Autres fonctionnalités", "More features", "更多功能", "ميزات أخرى")) }
+        item { FeatureCard("📿 Tasbih", tr("Compteur de glorifications", "Dhikr counter", "赞念计数器", "عداد التسبيح"), onTasbih) }
+        item { FeatureCard("🤲 " + tr("Invocations", "Supplications", "祈祷词", "الأذكار"), tr("Adhkar du matin et du soir", "Morning and evening adhkar", "早晚赞念词", "أذكار الصباح والمساء"), onInvocations) }
+        item { FeatureCard("📜 " + tr("Histoires des prophètes", "Stories of the prophets", "先知故事", "قصص الأنبياء"), tr("Découvrir les prophètes", "Discover the prophets", "了解先知们", "تعرّف على الأنبياء"), { showProphets = true }) }
         item {
             FeatureCard(
-                if (isDarkMode) "☀️ Mode clair" else "🌙 Mode sombre",
-                "Personnaliser l'affichage",
+                if (isDarkMode) "☀️ " + tr("Mode clair", "Light mode", "浅色模式", "الوضع الفاتح")
+                else "🌙 " + tr("Mode sombre", "Dark mode", "深色模式", "الوضع الداكن"),
+                tr("Personnaliser l'affichage", "Customize the display", "自定义显示", "تخصيص العرض"),
                 {
                     isDarkMode = !isDarkMode
                     saveDarkMode(context, isDarkMode)
                 }
             )
         }
-        item { FeatureCard("🌍 Langue", "Arabe et français") }
+        item { FeatureCard("🌍 " + tr("Langue", "Language", "语言", "اللغة"), "Français · English · 中文 · العربية", { showLang = true }) }
     }
 }
 
@@ -490,12 +554,19 @@ fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+   verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Qibla", fontSize = 28.sp, fontWeight = FontWeight.Bold)
-        Text("Direction : ${qibla.toInt()}° depuis le Nord")
+        Text(tr("Qibla", "Qibla", "朝向", "القبلة"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(
+            tr(
+                "Direction : ${qibla.toInt()}° depuis le Nord",
+                "Direction: ${qibla.toInt()}° from North",
+                "方向：距正北 ${qibla.toInt()}°",
+                "الاتجاه: ${qibla.toInt()}° من الشمال"
+            )
+        )
         Spacer(Modifier.height(24.dp))
         Box(
             modifier = Modifier
@@ -515,7 +586,14 @@ fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
             Text("▲", fontSize = 100.sp, color = ScreenGold)
         }
         Spacer(Modifier.height(16.dp))
-        Text("Tiens le téléphone à plat. La Kaaba 🕋 indique la direction de la Mecque.")
+        Text(
+            tr(
+                "Tiens le téléphone à plat. La Kaaba 🕋 indique la direction de la Mecque.",
+                "Hold your phone flat. The Kaaba 🕋 shows the direction of Mecca.",
+                "请将手机水平放置。克尔白 🕋 指示麦加的方向。",
+                "أمسك الهاتف بشكل أفقي. تشير الكعبة 🕋 إلى اتجاه مكة."
+            )
+        )
     }
 }
 
@@ -533,10 +611,15 @@ fun TasbihScreen(onBack: () -> Unit) {
     ) {
         Row(Modifier.fillMaxWidth()) {
             TextButton(onClick = onBack) {
-                Text("‹ Retour", color = ScreenGreen)
+                Text(tr("‹ Retour", "‹ Back", "‹ 返回", "‹ رجوع"), color = ScreenGreen)
             }
         }
-        Text("Tasbih", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = ScreenGreen)
+        Text(
+            tr("Tasbih", "Tasbih", "念珠", "المسبحة"),
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = ScreenGreen
+        )
         Spacer(Modifier.height(12.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(33, 99, 100).forEach { t ->
@@ -571,11 +654,29 @@ fun TasbihScreen(onBack: () -> Unit) {
         }
         Spacer(Modifier.height(16.dp))
         if (count >= target) {
-            Text("Terminé ✅ Qu'Allah accepte", fontSize = 18.sp, color = ScreenGreen)
+            Text(
+                tr(
+                    "Terminé ✅ Qu'Allah accepte",
+                    "Done ✅ May Allah accept",
+                    "完成 ✅ 愿真主接受",
+                    "اكتمل ✅ تقبّل الله"
+                ),
+                fontSize = 18.sp,
+                color = ScreenGreen
+            )
         } else {
-            Text("Appuie sur le cercle pour compter")
+            Text(
+                tr(
+                    "Appuie sur le cercle pour compter",
+                    "Tap the circle to count",
+                    "点击圆圈开始计数",
+                    "اضغط على الدائرة للعدّ"
+                )
+            )
         }
         Spacer(Modifier.height(24.dp))
-                OutlinedButton(onClick = { count = 0 }) { Text("Remise à zéro") }
+        OutlinedButton(onClick = { count = 0 }) {
+            Text(tr("Remise à zéro", "Reset", "重置", "إعادة الضبط"))
+        }
     }
 }
