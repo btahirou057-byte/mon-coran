@@ -43,7 +43,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-private val ScreenGreen = Color(0xFF075B46)
+
+private val ScreenGreen: Color get() = Green
 private val ScreenGold = Color(0xFFD6AE58)
 
 data class PrayerCity(
@@ -314,7 +315,7 @@ fun PrayerHome() {
                         .fillMaxWidth()
                         .padding(vertical = 5.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = Color.White
+                        containerColor = CardBg
                     )
                 ) {
                     Row(
@@ -342,7 +343,7 @@ fun PrayerHome() {
             Text(
                 "Méthode de calcul : Muslim World League.",
                 modifier = Modifier.padding(top = 12.dp),
-                color = Color.DarkGray,
+                color = TextSecondary,
                 fontSize = 12.sp
             )
         } else {
@@ -396,17 +397,27 @@ fun AudioHome() {
 
 @Composable
 fun MoreHome(onTasbih: () -> Unit = {}, onInvocations: () -> Unit = {}) {
-        var showProphets by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var showProphets by remember { mutableStateOf(false) }
     if (showProphets) {
         ProphetsScreen(onBack = { showProphets = false })
         return
     }
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         item { SectionTitle("Autres fonctionnalités") }
-            item { FeatureCard("📿 Tasbih", "Compteur de glorifications", onTasbih) }
-    item { FeatureCard("🤲 Invocations", "Adhkar du matin et du soir", onInvocations) }
-    item { FeatureCard("📜 Histoires des prophètes", "Découvrir les prophètes", { showProphets = true }) }
-        item { FeatureCard("🌙 Mode sombre", "Personnaliser l'affichage") }
+        item { FeatureCard("📿 Tasbih", "Compteur de glorifications", onTasbih) }
+        item { FeatureCard("🤲 Invocations", "Adhkar du matin et du soir", onInvocations) }
+        item { FeatureCard("📜 Histoires des prophètes", "Découvrir les prophètes", { showProphets = true }) }
+        item {
+            FeatureCard(
+                if (isDarkMode) "☀️ Mode clair" else "🌙 Mode sombre",
+                "Personnaliser l'affichage",
+                {
+                    isDarkMode = !isDarkMode
+                    saveDarkMode(context, isDarkMode)
+                }
+            )
+        }
         item { FeatureCard("🌍 Langue", "Arabe et français") }
     }
 }
@@ -427,10 +438,10 @@ fun FeatureCard(title: String, description: String, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-                        .padding(bottom = 10.dp)
+            .padding(bottom = 10.dp)
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
-            containerColor = Color.White
+            containerColor = CardBg
         ),
         shape = RoundedCornerShape(14.dp)
     ) {
@@ -445,11 +456,12 @@ fun FeatureCard(title: String, description: String, onClick: () -> Unit = {}) {
             Text(
                 description,
                 fontSize = 13.sp,
-                color = Color.DarkGray
+                color = TextSecondary
             )
         }
     }
 }
+
 @Composable
 fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
     val context = LocalContext.current
@@ -506,6 +518,7 @@ fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
         Text("Tiens le téléphone à plat. La Kaaba 🕋 indique la direction de la Mecque.")
     }
 }
+
 @Composable
 fun TasbihScreen(onBack: () -> Unit) {
     var count by remember { mutableStateOf(0) }
@@ -563,6 +576,6 @@ fun TasbihScreen(onBack: () -> Unit) {
             Text("Appuie sur le cercle pour compter")
         }
         Spacer(Modifier.height(24.dp))
-        OutlinedButton(onClick = { count = 0 }) { Text("Remise à zéro") }
+                OutlinedButton(onClick = { count = 0 }) { Text("Remise à zéro") }
     }
 }
