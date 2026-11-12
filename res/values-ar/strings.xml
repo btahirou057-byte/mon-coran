@@ -1,0 +1,14 @@
+<string name="invocations_title">الأذكار</string>
+<string name="tab_morning">الصباح</string>
+<string name="tab_evening">المساء</string>
+<string name="repetitions">التكرار: %1$d</string>
+<string name="remaining">المتبقي %1$d</string>
+<string name="done">تم ✓</string>
+<string name="restart">إعادة</string>
+<string name="dhikr_morning_1"></string>
+<string name="dhikr_evening_1"></string>
+<string name="dhikr_sayyid"></string>
+<string name="dhikr_agrement"></string>
+<string name="dhikr_bismillah"></string>
+<string name="dhikr_refuge"></string>
+<string name="dhikr_tasbih"></string>
