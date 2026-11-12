@@ -145,7 +145,7 @@ fun ProphetsScreen(onBack: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { selected = index },
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = CardBg),
                     shape = RoundedCornerShape(14.dp)
                 ) {
                     Row(
@@ -205,7 +205,7 @@ private fun ProphetDetail(prophet: Prophet, onBack: () -> Unit) {
         Text(
             "Références : ${prophet.source}",
             fontSize = 13.sp,
-            color = Color.DarkGray,
+            color = TextSecondary,
             modifier = Modifier.padding(top = 16.dp)
         )
     }
