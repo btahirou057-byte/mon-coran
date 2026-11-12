@@ -14,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -37,6 +39,8 @@ fun SurahReader(
     surah: SurahData,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
     var player by remember { mutableStateOf<MediaPlayer?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
     var isPreparing by remember { mutableStateOf(false) }
@@ -111,7 +115,7 @@ fun SurahReader(
             }
 
             mp.setOnErrorListener { _, what, extra ->
-                audioError = "Erreur de lecture ($what, $extra). Vérifie Internet."
+                audioError = context.getString(R.string.err_playback, what, extra)
                 stopAudio()
                 true
             }
@@ -120,7 +124,10 @@ fun SurahReader(
             mp.prepareAsync()
         } catch (e: Exception) {
             stopAudio()
-            audioError = "Erreur audio : ${e.message ?: "connexion impossible"}"
+            audioError = context.getString(
+                R.string.err_audio,
+                e.message ?: context.getString(R.string.err_no_connection)
+            )
         }
     }
 
@@ -144,7 +151,7 @@ fun SurahReader(
     }
 
     fun changeSpeed() {
-speedIndex = if (speedIndex >= speeds.size - 1) 0 else speedIndex + 1
+        speedIndex = if (speedIndex >= speeds.size - 1) 0 else speedIndex + 1
         try {
             val p = player
             if (p != null && isPlaying) {
@@ -169,7 +176,7 @@ speedIndex = if (speedIndex >= speeds.size - 1) 0 else speedIndex + 1
 
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
-            "‹ Retour",
+            stringResource(R.string.back),
             modifier = Modifier
                 .clickable {
                     stopAudio()
@@ -192,7 +199,7 @@ speedIndex = if (speedIndex >= speeds.size - 1) 0 else speedIndex + 1
         )
 
         Text(
-            "${surah.ayahs.size} versets",
+            stringResource(R.string.verses_count, surah.ayahs.size),
             modifier = Modifier.fillMaxWidth(),
             color = Color.DarkGray,
             textAlign = TextAlign.Center
@@ -239,8 +246,12 @@ speedIndex = if (speedIndex >= speeds.size - 1) 0 else speedIndex + 1
             reciterLabel = reciters[reciterIndex].label,
             reciterNames = reciters.map { it.label },
             statusText = if (currentIndex >= 0)
-                "Verset ${surah.ayahs[currentIndex].number} / ${surah.ayahs.size}"
-            else "Touche un verset ou appuie sur ▶",
+                stringResource(
+                    R.string.verse_status,
+                    surah.ayahs[currentIndex].number,
+                    surah.ayahs.size
+                )
+            else stringResource(R.string.touch_hint),
             isPlaying = isPlaying,
             isPreparing = isPreparing,
             repeatOne = repeatOne,
