@@ -31,8 +31,6 @@ import androidx.compose.ui.unit.sp
 
 private val Highlight = Color(0xFFDDEBD5)
 
-private const val BISMILLAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَـٰنِ ٱلرَّحِيمِ"
-
 internal data class Reciter(val label: String, val id: String)
 
 internal val reciters = listOf(
@@ -60,11 +58,11 @@ fun SurahReader(
     var isPreparing by remember { mutableStateOf(false) }
     var audioError by remember { mutableStateOf<String?>(null) }
     var currentIndex by remember { mutableIntStateOf(-1) }
-    var bismillahActive by remember { mutableStateOf(false) }
     var repeatOne by remember { mutableStateOf(false) }
     var speedIndex by remember { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
 
+    // La Bismillah est dans le texte du verset 1 (sauf sourates 1 et 9)
     val hasBismillah = surah.number != 1 && surah.number != 9
 
     val prefs = remember { context.getSharedPreferences("favoris", Context.MODE_PRIVATE) }
@@ -94,7 +92,6 @@ fun SurahReader(
         player = null
         isPlaying = false
         isPreparing = false
-        bismillahActive = false
     }
 
     fun startPlayer(url: String, onDone: () -> Unit) {
@@ -150,37 +147,31 @@ fun SurahReader(
         }
     }
 
-    fun playAyah(index: Int) {
+    fun playAyah(index: Int, withBismillah: Boolean = true) {
         if (index !in surah.ayahs.indices) {
             stopAudio()
             currentIndex = -1
             return
         }
 
-        bismillahActive = false
         currentIndex = index
 
-        val url = "https://cdn.islamic.network/quran/audio/128/" +
-            "${reciters[selectedReciterIndex].id}/${surah.ayahs[index].globalNumber}.mp3"
+        val base = "https://cdn.islamic.network/quran/audio/128/" +
+            "${reciters[selectedReciterIndex].id}/"
+        val verseUrl = base + "${surah.ayahs[index].globalNumber}.mp3"
 
-        startPlayer(url) {
-            if (repeatOne) playAyah(index) else playAyah(index + 1)
+        val afterVerse = {
+            if (repeatOne) playAyah(index, false) else playAyah(index + 1)
         }
-    }
 
-    fun playBismillah() {
-        bismillahActive = true
-        currentIndex = -1
-
-        // Le numéro global 1 correspond à la Bismillah d'Al-Fatiha
-        val url = "https://cdn.islamic.network/quran/audio/128/" +
-            "${reciters[selectedReciterIndex].id}/1.mp3"
-
-        startPlayer(url) { playAyah(0) }
-    }
-
-    fun playFromStart() {
-        if (hasBismillah) playBismillah() else playAyah(0)
+        if (withBismillah && index == 0 && hasBismillah) {
+            // Le fichier 1.mp3 est la Bismillah récitée
+            startPlayer(base + "1.mp3") {
+                startPlayer(verseUrl) { afterVerse() }
+            }
+        } else {
+            startPlayer(verseUrl) { afterVerse() }
+        }
     }
 
     fun togglePlayPause() {
@@ -195,10 +186,10 @@ fun SurahReader(
                     isPlaying = true
                 }
             } catch (_: Exception) {
-                if (currentIndex >= 0) playAyah(currentIndex) else playFromStart()
+                playAyah(maxOf(currentIndex, 0))
             }
         } else if (p == null) {
-            if (currentIndex >= 0) playAyah(currentIndex) else playFromStart()
+            playAyah(maxOf(currentIndex, 0))
         }
     }
 
@@ -222,7 +213,7 @@ fun SurahReader(
 
     LaunchedEffect(currentIndex) {
         if (currentIndex >= 0) {
-            listState.animateScrollToItem(currentIndex + if (hasBismillah) 1 else 0)
+            listState.animateScrollToItem(currentIndex)
         }
     }
 
@@ -350,27 +341,6 @@ fun SurahReader(
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            if (hasBismillah) {
-                item {
-                    Text(
-                        BISMILLAH,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                if (bismillahActive) Highlight
-                                else Color.Transparent
-                            )
-                            .clickable { playBismillah() }
-                            .padding(horizontal = 16.dp, vertical = 16.dp),
-                        color = Green,
-                        fontSize = 27.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center
-                    )
-                    HorizontalDivider(color = Color(0xFFE5E8E1))
-                }
-            }
-
             itemsIndexed(surah.ayahs) { index, ayah ->
                 val star = if ("${surah.number}:${ayah.number}" in favorites) " ★" else ""
                 Text(
@@ -398,9 +368,7 @@ fun SurahReader(
         PlayerBar(
             reciterLabel = reciters[selectedReciterIndex].label,
             reciterNames = reciters.map { it.label },
-            statusText = if (bismillahActive)
-                BISMILLAH
-            else if (currentIndex >= 0)
+            statusText = if (currentIndex >= 0)
                 stringResource(
                     R.string.verse_status,
                     surah.ayahs[currentIndex].number,
@@ -416,22 +384,14 @@ fun SurahReader(
             onPickReciter = { i ->
                 menuOpen = false
                 selectedReciterIndex = i
-                if (bismillahActive) {
-                    playBismillah()
-                } else if (currentIndex >= 0 && (isPlaying || isPreparing)) {
+                if (currentIndex >= 0 && (isPlaying || isPreparing)) {
                     playAyah(currentIndex)
                 }
             },
             onRepeat = { repeatOne = !repeatOne },
-            onPrev = {
-                if (currentIndex > 0) playAyah(currentIndex - 1)
-                else if (currentIndex == 0 && hasBismillah) playBismillah()
-            },
+            onPrev = { if (currentIndex > 0) playAyah(currentIndex - 1) },
             onToggle = { togglePlayPause() },
-            onNext = {
-                if (bismillahActive) playAyah(0)
-                else if (currentIndex >= 0) playAyah(currentIndex + 1)
-            },
+            onNext = { if (currentIndex >= 0) playAyah(currentIndex + 1) },
             onSpeed = { changeSpeed() },
             onStop = {
                 stopAudio()
