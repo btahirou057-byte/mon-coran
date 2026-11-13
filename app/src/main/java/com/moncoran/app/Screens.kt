@@ -458,19 +458,32 @@ fun AudioHome() {
 fun MoreHome(onTasbih: () -> Unit = {}, onInvocations: () -> Unit = {}) {
     val context = LocalContext.current
     var showProphets by remember { mutableStateOf(false) }
+    var showCalendar by remember { mutableStateOf(false) }
     var showLang by remember { mutableStateOf(false) }
     if (showProphets) {
         ProphetsScreen(onBack = { showProphets = false })
         return
     }
+    if (showCalendar) {
+        HijriCalendarScreen(onBack = { showCalendar = false })
+        return
+    }
     if (showLang) {
         LanguageDialog(onDismiss = { showLang = false })
     }
+    val shareMessage = tr(
+        "Je te recommande cette application du Saint Coran : Mon Coran 📖 (Coran, horaires de prière, Qibla, invocations).",
+        "I recommend this Quran app: Mon Coran 📖 (Quran, prayer times, Qibla, supplications).",
+        "推荐这款古兰经应用：Mon Coran 📖（古兰经、礼拜时间、朝向、祈祷词）。",
+        "أنصحك بهذا التطبيق للقرآن الكريم: Mon Coran 📖 (القرآن، مواقيت الصلاة، القبلة، الأذكار)."
+    )
     LazyColumn(modifier = Modifier.padding(16.dp)) {
         item { SectionTitle(tr("Autres fonctionnalités", "More features", "更多功能", "ميزات أخرى")) }
         item { FeatureCard("📿 Tasbih", tr("Compteur de glorifications", "Dhikr counter", "赞念计数器", "عداد التسبيح"), onTasbih) }
         item { FeatureCard("🤲 " + tr("Invocations", "Supplications", "祈祷词", "الأذكار"), tr("Adhkar du matin et du soir", "Morning and evening adhkar", "早晚赞念词", "أذكار الصباح والمساء"), onInvocations) }
         item { FeatureCard("📜 " + tr("Histoires des prophètes", "Stories of the prophets", "先知故事", "قصص الأنبياء"), tr("Découvrir les prophètes", "Discover the prophets", "了解先知们", "تعرّف على الأنبياء"), { showProphets = true }) }
+        item { FeatureCard("📅 " + tr("Calendrier musulman", "Islamic calendar", "伊斯兰历", "التقويم الهجري"), tr("Date hégirienne et fêtes", "Hijri date and holidays", "伊斯兰历日期与节日", "التاريخ الهجري والمناسبات"), { showCalendar = true }) }
+        item { FeatureCard("📤 " + tr("Partager l'application", "Share the app", "分享应用", "شارك التطبيق"), tr("Envoyer à un ami", "Send to a friend", "发送给朋友", "أرسله إلى صديق"), { shareText(context, shareMessage) }) }
         item {
             FeatureCard(
                 if (isDarkMode) "☀️ " + tr("Mode clair", "Light mode", "浅色模式", "الوضع الفاتح")
@@ -529,7 +542,6 @@ fun FeatureCard(title: String, description: String, onClick: () -> Unit = {}) {
 @Composable
 fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
     val context = LocalContext.current
-    var azimuth by remember { mutableStateOf(0f) }
     val qibla = remember(latitude, longitude) {
         Qibla(Coordinates(latitude, longitude)).direction.toFloat()
     }
@@ -550,13 +562,14 @@ fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
         sm.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
         onDispose { sm.unregisterListener(listener) }
     }
-Column(
-    modifier = Modifier
-        .fillMaxSize()
-        .verticalScroll(rememberScrollState())
-        .padding(24.dp),
-    horizontalAlignment = Alignment.CenterHorizontally
-) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(tr("Qibla", "Qibla", "朝向", "القبلة"), fontSize = 28.sp, fontWeight = FontWeight.Bold)
         Text(
             tr(
