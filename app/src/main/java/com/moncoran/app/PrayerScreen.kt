@@ -45,18 +45,29 @@ private fun computeTimes(lat: Double, lon: Double, date: Date): PrayerTimes {
 private fun fmtTime(date: Date): String =
     SimpleDateFormat("HH:mm", Locale.getDefault()).format(date)
 
-private suspend fun findCity(query: String): PrayerCity? =
+private suspend fun findCity(context: Context, query: String): PrayerCity? =
     withContext(Dispatchers.IO) {
         try {
             val q = java.net.URLEncoder.encode(query.trim(), "UTF-8")
-            val url = "https://geocoding-api.open-meteo.com/v1/search?name=$q&count=1"
-            val r = org.json.JSONObject(java.net.URL(url).readText())
+            val conn = java.net.URL(
+                "https://geocoding-api.open-meteo.com/v1/search?name=$q&count=1&language=fr"
+            ).openConnection() as java.net.HttpURLConnection
+            conn.connectTimeout = 8000
+            conn.readTimeout = 8000
+            val r = org.json.JSONObject(conn.inputStream.bufferedReader().readText())
                 .getJSONArray("results").getJSONObject(0)
-            PrayerCity(
+            return@withContext PrayerCity(
                 r.getString("name") + ", " + r.optString("country"),
                 r.getDouble("latitude"),
                 r.getDouble("longitude")
             )
+        } catch (e: Exception) {
+        }
+        try {
+            @Suppress("DEPRECATION")
+            val a = android.location.Geocoder(context, Locale.getDefault())
+                .getFromLocationName(query.trim(), 1)?.firstOrNull()
+            if (a != null) PrayerCity(a.locality ?: query.trim(), a.latitude, a.longitude) else null
         } catch (e: Exception) {
             null
         }
@@ -181,7 +192,8 @@ fun PrayerHome() {
             onClick = {
                 if (cityQuery.isNotBlank()) {
                     scope.launch {
-                        val found = findCity(cityQuery)
+                        message = "Recherche..."
+                        val found = findCity(context, cityQuery)
                         if (found != null) {
                             latitude = found.latitude
                             longitude = found.longitude
