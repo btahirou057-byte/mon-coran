@@ -545,7 +545,7 @@ fun QiblaScreen(latitude: Double = 9.6412, longitude: Double = -13.5784) {
     val qibla = remember(latitude, longitude) {
         Qibla(Coordinates(latitude, longitude)).direction.toFloat()
     }
-
+var azimuth by remember { mutableFloatStateOf(0f) }
     DisposableEffect(Unit) {
         val sm = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val sensor = sm.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
