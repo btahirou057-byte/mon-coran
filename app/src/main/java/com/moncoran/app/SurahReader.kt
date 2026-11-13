@@ -1,9 +1,16 @@
 package com.moncoran.app
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.PlaybackParams
+import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -34,6 +41,7 @@ private val reciters = listOf(
 
 private val speeds = listOf(1f, 1.25f, 1.5f, 0.75f)
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SurahReader(
     surah: SurahData,
@@ -50,6 +58,19 @@ fun SurahReader(
     var speedIndex by remember { mutableIntStateOf(0) }
     var reciterIndex by remember { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
+
+    val prefs = remember { context.getSharedPreferences("favoris", Context.MODE_PRIVATE) }
+    var favorites by remember {
+        mutableStateOf<Set<String>>(prefs.getStringSet("verses", emptySet())?.toSet() ?: emptySet())
+    }
+    var actionIndex by remember { mutableIntStateOf(-1) }
+
+    fun toggleFavorite(key: String) {
+        val updated = favorites.toMutableSet()
+        if (!updated.add(key)) updated.remove(key)
+        favorites = updated
+        prefs.edit().putStringSet("verses", updated).apply()
+    }
 
     val listState = rememberLazyListState()
 
@@ -174,6 +195,54 @@ fun SurahReader(
         }
     }
 
+    if (actionIndex in surah.ayahs.indices) {
+        val ayah = surah.ayahs[actionIndex]
+        val key = "${surah.number}:${ayah.number}"
+        val verseText = "${ayah.text}\n(${surah.name} : ${ayah.number})"
+        val isFavorite = key in favorites
+
+        AlertDialog(
+            onDismissRequest = { actionIndex = -1 },
+            confirmButton = {},
+            title = {
+                Text(stringResource(R.string.verse_status, ayah.number, surah.ayahs.size))
+            },
+            text = {
+                Column {
+                    TextButton(onClick = {
+                        val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        cm.setPrimaryClip(ClipData.newPlainText("verset", verseText))
+                        Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show()
+                        actionIndex = -1
+                    }) { Text(stringResource(R.string.copy), color = Green) }
+
+                    TextButton(onClick = {
+                        val send = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, verseText)
+                        }
+                        val chooser = Intent.createChooser(send, null)
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        context.startActivity(chooser)
+                        actionIndex = -1
+                    }) { Text(stringResource(R.string.share), color = Green) }
+
+                    TextButton(onClick = {
+                        toggleFavorite(key)
+                        actionIndex = -1
+                    }) {
+                        Text(
+                            stringResource(
+                                if (isFavorite) R.string.favorite_remove else R.string.favorite_add
+                            ),
+                            color = Green
+                        )
+                    }
+                }
+            }
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
             stringResource(R.string.back),
@@ -223,15 +292,19 @@ fun SurahReader(
                 .fillMaxWidth()
         ) {
             itemsIndexed(surah.ayahs) { index, ayah ->
+                val star = if ("${surah.number}:${ayah.number}" in favorites) " ★" else ""
                 Text(
-                    "${ayah.text} ۝${ayah.number}",
+                    "${ayah.text} ۝${ayah.number}$star",
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
                             if (index == currentIndex) Highlight
                             else Color.Transparent
                         )
-                        .clickable { playAyah(index) }
+                        .combinedClickable(
+                            onClick = { playAyah(index) },
+                            onLongClick = { actionIndex = index }
+                        )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
                     color = Color(0xFF202820),
                     fontSize = 25.sp,
