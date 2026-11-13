@@ -16,6 +16,9 @@
     <string name="favorite_add">★ Ajouter aux favoris</string>
     <string name="favorite_remove">☆ Retirer des favoris</string>
     <string name="copied">Verset copié</string>
+    <string name="copy_part">Copier une partie</string>
+    <string name="select_hint">Appuie longtemps sur un mot, ajuste la sélection, puis choisis Copier</string>
+    <string name="close">Fermer</string>
 
     <string name="invocations_title">Invocations</string>
     <string name="tab_morning">Matin</string>
