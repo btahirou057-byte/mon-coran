@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="back">← Retour</string>
+    <string name="prophets_title">Histoires des prophètes</string>
+    <string name="references">Références : %1$s</string>
+
+    <string name="prophet_adam_name">Adam</string>
+    <string name="prophet_adam_story">Adam est le premier homme et le premier prophète. Allah l\'a créé d\'argile, lui a enseigné les noms de toutes choses et l\'a installé au Paradis avec son épouse. Ils ont mangé de l\'arbre interdit, puis se sont repentis et Allah leur a pardonné avant de les envoyer sur terre.</string>
+    <string name="prophet_adam_source">Coran 2:30-39 ; 7:11-25</string>
+
+    <string name="prophet_nouh_name">Noé (Nouh)</string>
+    <string name="prophet_nouh_story">Nouh a appelé son peuple pendant des siècles à adorer Allah seul, mais très peu l\'ont suivi. Sur l\'ordre d\'Allah, il a construit l\'arche. Le déluge a englouti les mécréants et sauvé les croyants ainsi que les couples d\'animaux embarqués.</string>
+    <string name="prophet_nouh_source">Coran 11:25-49 ; sourate 71</string>
+
+    <string name="prophet_ibrahim_name">Abraham (Ibrahim)</string>
+    <string name="prophet_ibrahim_story">Ibrahim a rejeté l\'idolâtrie de son peuple et brisé leurs idoles. Jeté dans le feu, il en est sorti indemne par la volonté d\'Allah. Il a mis sa confiance en Allah jusque dans l\'épreuve du sacrifice de son fils, puis a élevé la Kaaba avec Ismaël.</string>
+    <string name="prophet_ibrahim_source">Coran 21:51-70 ; 37:83-113 ; 2:124-129</string>
+
+    <string name="prophet_youssouf_name">Joseph (Youssouf)</string>
+    <string name="prophet_youssouf_story">Youssouf, trahi par ses frères et jeté au fond d\'un puits, est vendu en Égypte. Il résiste à la tentation, subit la prison injustement, puis devient ministre grâce à son interprétation des rêves. Il pardonne finalement à ses frères et retrouve son père Yaqoub.</string>
+    <string name="prophet_youssouf_source">Coran, sourate 12</string>
+
+    <string name="prophet_moussa_name">Moïse (Moussa)</string>
+    <string name="prophet_moussa_story">Moussa, sauvé enfant des eaux du Nil, est envoyé à Pharaon avec son frère Haroun. Malgré les signes éclatants donnés par Allah, Pharaon refuse de croire. Moussa conduit les Enfants d\'Israël hors d\'Égypte, la mer s\'ouvre pour eux et Pharaon est englouti.</string>
+    <string name="prophet_moussa_source">Coran 20:9-98 ; 28:3-43</string>
+
+    <string name="prophet_ayyoub_name">Job (Ayyoub)</string>
+    <string name="prophet_ayyoub_story">Ayyoub a été éprouvé dans ses biens, ses enfants et sa santé. Il est resté patient et reconnaissant, et a invoqué Allah. Allah l\'a guéri et lui a rendu sa famille et davantage encore. Il est le modèle de la patience.</string>
+    <string name="prophet_ayyoub_source">Coran 21:83-84 ; 38:41-44</string>
+
+    <string name="prophet_younes_name">Jonas (Younes)</string>
+    <string name="prophet_younes_story">Younes quitte son peuple avant l\'ordre d\'Allah. Avalé par une baleine, il invoque Allah dans les ténèbres : « Pas de divinité en dehors de Toi, gloire à Toi, j\'étais du nombre des injustes. » Allah l\'exauce, et son peuple finit par croire.</string>
+    <string name="prophet_younes_source">Coran 37:139-148 ; 21:87-88</string>
+
+    <string name="prophet_issa_name">Jésus (Issa)</string>
+    <string name="prophet_issa_story">Issa est né miraculeusement de Maryam, sans père. Il parle dès le berceau. Envoyé aux Enfants d\'Israël, il accomplit des miracles par la permission d\'Allah : guérir l\'aveugle et le lépreux, ressusciter les morts. Allah l\'a élevé vers Lui.</string>
+    <string name="prophet_issa_source">Coran 3:45-59 ; 19:16-36</string>
+
+    <string name="prophet_muhammad_name">Muhammad ﷺ</string>
+    <string name="prophet_muhammad_story">Le dernier des prophètes est né à La Mecque. À quarante ans, il reçoit la première révélation dans la grotte de Hira. Il appelle à l\'unicité d\'Allah malgré la persécution, émigre à Médine, puis revient à La Mecque. Le Coran lui a été révélé pendant 23 ans.</string>
+    <string name="prophet_muhammad_source">Coran 96:1-5 ; 33:40 ; 48:29</string>
+</resources>
