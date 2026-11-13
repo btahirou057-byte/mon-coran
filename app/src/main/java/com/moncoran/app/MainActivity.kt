@@ -121,7 +121,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun QuranApp() {
+fun QuranAppOld() {
     val context = LocalContext.current
     val quranResult = remember { runCatching { loadQuran(context) } }
     val surahs = quranResult.getOrDefault(emptyList())
