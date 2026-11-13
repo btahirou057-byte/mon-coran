@@ -163,11 +163,8 @@ fun QuranApp() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .statusBarsPadding()
         ) {
-            if (selectedTab != 0 || selectedSurah == null) {
-                Header()
-            }
-
             when (selectedTab) {
                 0 -> {
                     if (selectedSurah == null) {
@@ -195,28 +192,6 @@ fun QuranApp() {
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Header() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Green)
-            .padding(22.dp)
-    ) {
-        Text("السَّلَامُ عَلَيْكُمْ", color = Gold, fontSize = 24.sp)
-        Text(
-            "القرآن الكريم",
-            color = Color.White,
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            tr("Votre compagnon spirituel", "Your spiritual companion", "您的灵修伴侣", "رفيقك الروحي"),
-            color = Color.White
-        )
     }
 }
 
