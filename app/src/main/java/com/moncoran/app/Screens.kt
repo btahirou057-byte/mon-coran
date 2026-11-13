@@ -88,7 +88,8 @@ fun PrayerHome() {
     var longitude by remember { mutableDoubleStateOf(cities[0].longitude) }
     var locationName by remember { mutableStateOf("Conakry") }
     var menuExpanded by remember { mutableStateOf(false) }
-    var locationMessage by remember { mutableStateOf("") }
+        var locationMessage by remember { mutableStateOf("") }
+    var cityQuery by remember { mutableStateOf("") }
 
     var currentTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
 
@@ -174,30 +175,40 @@ fun PrayerHome() {
 
         Spacer(modifier = Modifier.height(8.dp))
 
+            OutlinedTextField(
+            value = cityQuery,
+            onValueChange = { cityQuery = it },
+            label = { Text(tr("Ville (monde entier)", "City (worldwide)", "城市（全球）", "مدينة (العالم)")) },
+            modifier = Modifier.fillMaxWidth()
+        )
+
         Button(
-            onClick = { menuExpanded = true },
+            onClick = {
+                val found = try {
+                    android.location.Geocoder(context, Locale.getDefault())
+                        .getFromLocationName(cityQuery, 1)
+                        ?.firstOrNull()
+                } catch (e: Exception) {
+                    null
+                }
+                if (found != null) {
+                    latitude = found.latitude
+                    longitude = found.longitude
+                    locationName = cityQuery
+                    locationMessage = ""
+                } else {
+                    locationMessage = tr(
+                        "Ville introuvable. Vérifie ta connexion.",
+                        "City not found. Check your connection.",
+                        "未找到城市。请检查网络。",
+                        "المدينة غير موجودة. تحقق من الاتصال."
+                    )
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(tr("Choisir une ville", "Choose a city", "选择城市", "اختر مدينة"))
+            Text(tr("Rechercher", "Search", "搜索", "بحث"))
         }
-
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false }
-        ) {
-            cities.forEach { city ->
-                DropdownMenuItem(
-                    text = { Text(city.name) },
-                    onClick = {
-                        selectedCity = city
-                        latitude = city.latitude
-                        longitude = city.longitude
-                        locationName = city.name
-                        locationMessage = ""
-                        menuExpanded = false
-                    }
-                )
-            }
         }
 
         OutlinedButton(
