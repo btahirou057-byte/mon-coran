@@ -80,7 +80,7 @@ private fun formatPrayerTime(date: Date): String {
 }
 
 @Composable
-fun PrayerHome() {
+fun PrayerHomeOld1() {
     val context = LocalContext.current
 
     var selectedCity by remember { mutableStateOf(cities[0]) }
