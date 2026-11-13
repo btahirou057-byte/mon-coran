@@ -489,7 +489,8 @@ fun MoreHome(onTasbih: () -> Unit = {}, onInvocations: () -> Unit = {}) {
         "推荐这款古兰经应用：Mon Coran 📖（古兰经、礼拜时间、朝向、祈祷词）。",
         "أنصحك بهذا التطبيق للقرآن الكريم: Mon Coran 📖 (القرآن، مواقيت الصلاة، القبلة، الأذكار)."
     )
-    LazyColumn(modifier = Modifier.padding(16.dp)) {
+        LazyColumn(modifier = Modifier.padding(16.dp)) {
+        item { androidx.compose.foundation.Image(painter = androidx.compose.ui.res.painterResource(R.drawable.coran_accueil), contentDescription = null, modifier = Modifier.fillMaxWidth().height(160.dp)) }
         item { SectionTitle(tr("Autres fonctionnalités", "More features", "更多功能", "ميزات أخرى")) }
         item { FeatureCard("📿 Tasbih", tr("Compteur de glorifications", "Dhikr counter", "赞念计数器", "عداد التسبيح"), onTasbih) }
         item { FeatureCard("🤲 " + tr("Invocations", "Supplications", "祈祷词", "الأذكار"), tr("Adhkar du matin et du soir", "Morning and evening adhkar", "早晚赞念词", "أذكار الصباح والمساء"), onInvocations) }
