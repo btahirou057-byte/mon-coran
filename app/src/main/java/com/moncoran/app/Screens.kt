@@ -409,7 +409,7 @@ fun PrayerHome() {
             )
         }
     }
-}
+
 
 private fun getDeviceLocation(
     context: Context
