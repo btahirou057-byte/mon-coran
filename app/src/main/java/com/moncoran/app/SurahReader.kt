@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,6 +65,7 @@ fun SurahReader(
         mutableStateOf<Set<String>>(prefs.getStringSet("verses", emptySet())?.toSet() ?: emptySet())
     }
     var actionIndex by remember { mutableIntStateOf(-1) }
+    var selectIndex by remember { mutableIntStateOf(-1) }
 
     fun toggleFavorite(key: String) {
         val updated = favorites.toMutableSet()
@@ -210,6 +212,11 @@ fun SurahReader(
             text = {
                 Column {
                     TextButton(onClick = {
+                        selectIndex = actionIndex
+                        actionIndex = -1
+                    }) { Text(stringResource(R.string.copy_part), color = Green) }
+
+                    TextButton(onClick = {
                         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         cm.setPrimaryClip(ClipData.newPlainText("verset", verseText))
                         Toast.makeText(context, context.getString(R.string.copied), Toast.LENGTH_SHORT).show()
@@ -238,6 +245,29 @@ fun SurahReader(
                             color = Green
                         )
                     }
+                }
+            }
+        )
+    }
+
+    if (selectIndex in surah.ayahs.indices) {
+        AlertDialog(
+            onDismissRequest = { selectIndex = -1 },
+            confirmButton = {
+                TextButton(onClick = { selectIndex = -1 }) {
+                    Text(stringResource(R.string.close), color = Green)
+                }
+            },
+            title = { Text(stringResource(R.string.select_hint), fontSize = 14.sp) },
+            text = {
+                SelectionContainer {
+                    Text(
+                        surah.ayahs[selectIndex].text,
+                        fontSize = 25.sp,
+                        lineHeight = 44.sp,
+                        textAlign = TextAlign.Right,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         )
