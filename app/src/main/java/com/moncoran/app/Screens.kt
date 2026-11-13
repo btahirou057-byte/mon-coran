@@ -151,11 +151,12 @@ fun PrayerHome() {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
+            Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
         Text(
             tr("Heures de prière", "Prayer times", "礼拜时间", "مواقيت الصلاة"),
             fontSize = 25.sp,
