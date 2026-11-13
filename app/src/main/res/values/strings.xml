@@ -4,6 +4,13 @@
     <string name="prophets_title">Histoires des prophètes</string>
     <string name="references">Références : %1$s</string>
 
+    <string name="err_playback">Erreur de lecture (%1$d, %2$d)</string>
+    <string name="err_audio">Erreur audio : %1$s</string>
+    <string name="err_no_connection">pas de connexion</string>
+    <string name="verses_count">%1$d versets</string>
+    <string name="verse_status">Verset %1$d / %2$d</string>
+    <string name="touch_hint">Touche un verset pour l\'écouter</string>
+
     <string name="prophet_adam_name">Adam</string>
     <string name="prophet_adam_story">Adam est le premier homme et le premier prophète. Allah l\'a créé d\'argile, lui a enseigné les noms de toutes choses et l\'a installé au Paradis avec son épouse. Ils ont mangé de l\'arbre interdit, puis se sont repentis et Allah leur a pardonné avant de les envoyer sur terre.</string>
     <string name="prophet_adam_source">Coran 2:30-39 ; 7:11-25</string>
