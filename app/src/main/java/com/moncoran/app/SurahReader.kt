@@ -1,5 +1,11 @@
 package com.moncoran.app
-
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -344,7 +350,13 @@ fun SurahReader(
             itemsIndexed(surah.ayahs) { index, ayah ->
                 val star = if ("${surah.number}:${ayah.number}" in favorites) " ★" else ""
                 Text(
-                    "${ayah.text} ۝${ayah.number}$star",
+                    text = buildAnnotatedString {
+    append(ayah.text)
+    append(" ")
+    appendInlineContent("badge", ayah.number.toString())
+    append(star)
+},
+inlineContent = ayahInline,
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
@@ -401,3 +413,23 @@ fun SurahReader(
         )
     }
 }
+@Composable
+private fun AyahBadge(number: String) {
+    val color = Color(0xFF202820)
+    Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) {
+        Canvas(Modifier.fillMaxSize()) {
+            drawCircle(color, style = Stroke(width = 1.5.dp.toPx()))
+        }
+        Text(
+            text = number.map { '٠' + (it - '0') }.joinToString(""),
+            fontSize = 13.sp,
+            color = color
+        )
+    }
+}
+
+private val ayahInline = mapOf(
+    "badge" to InlineTextContent(
+        Placeholder(36.sp, 36.sp, PlaceholderVerticalAlign.Center)
+    ) { num -> AyahBadge(num) }
+)
