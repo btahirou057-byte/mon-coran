@@ -74,7 +74,7 @@ fun SurahReader(
     var repeatOne by remember { mutableStateOf(false) }
     var speedIndex by remember { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
-
+var fullPage by remember { mutableStateOf(false) }
     // La Bismillah est dans le texte du verset 1 (sauf sourates 1 et 9)
     val hasBismillah = surah.number != 1 && surah.number != 9
 
@@ -318,7 +318,15 @@ if (index + 1 in surah.ayahs.indices) {
         )
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    if (fullPage) {
+    FullPageView(
+        surah = surah,
+        currentIndex = currentIndex,
+        isPlaying = isPlaying,
+        onToggle = { togglePlayPause() },
+        onClose = { fullPage = false }
+    )
+} else Column(modifier = Modifier.fillMaxSize()) {
         Text(
             stringResource(R.string.back),
             modifier = Modifier
@@ -383,7 +391,7 @@ inlineContent = ayahInline,
                             else Color.Transparent
                         )
                         .combinedClickable(
-                            onClick = { playAyah(index) },
+                        onClick = { fullPage = true },
                             onLongClick = { actionIndex = index }
                         )
                         .padding(horizontal = 16.dp, vertical = 12.dp),
@@ -474,3 +482,59 @@ private suspend fun fetchAudio(context: Context, url: String): File? =
         }
         null
     }
+@Composable
+private fun FullPageView(
+    surah: SurahData,
+    currentIndex: Int,
+    isPlaying: Boolean,
+    onToggle: () -> Unit,
+    onClose: () -> Unit
+) {
+    val state = rememberLazyListState()
+    LaunchedEffect(currentIndex) {
+        if (currentIndex >= 0) state.animateScrollToItem(currentIndex)
+    }
+    Column(Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF93C4A8))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                "‹",
+                fontSize = 30.sp,
+                modifier = Modifier.clickable { onClose() }.padding(horizontal = 8.dp)
+            )
+            Text("${surah.number}  ${surah.name}", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            Text(
+                if (isPlaying) "⏸" else "▶",
+                fontSize = 24.sp,
+                modifier = Modifier.clickable { onToggle() }.padding(horizontal = 8.dp)
+            )
+        }
+        LazyColumn(state = state, modifier = Modifier.fillMaxSize()) {
+            itemsIndexed(surah.ayahs) { index, ayah ->
+                Text(
+                    text = buildAnnotatedString {
+                        append(ayah.text)
+                        append(" ")
+                        appendInlineContent("badge", ayah.number.toString())
+                    },
+                    inlineContent = ayahInline,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(if (index == currentIndex) Highlight else Color.Transparent)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    color = Color(0xFF202820),
+                    fontSize = 28.sp,
+                    lineHeight = 52.sp,
+                    textAlign = TextAlign.Center
+                )
+                HorizontalDivider(color = Color(0xFFE5E8E1))
+            }
+        }
+    }
+}
