@@ -428,7 +428,7 @@ private fun getDeviceLocation(
 }
 
 @Composable
-fun AudioHome() {
+fun AudioHomeOld() {
     val pick = tr(
         "Choisis-le dans le lecteur d'une sourate",
         "Choose it in a surah's player",
