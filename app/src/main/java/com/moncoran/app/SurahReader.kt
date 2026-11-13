@@ -1,4 +1,11 @@
 package com.moncoran.app
+import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
@@ -86,8 +93,10 @@ fun SurahReader(
     }
 
     val listState = rememberLazyListState()
-
+val scope = rememberCoroutineScope()
+val token = remember { intArrayOf(0) }
     fun stopAudio() {
+        token[0]++
         player?.let {
             try {
                 if (it.isPlaying) it.stop()
@@ -108,51 +117,55 @@ fun SurahReader(
             }
         }
         player = null
-
         isPreparing = true
         isPlaying = false
         audioError = null
+        val my = ++token[0]
 
-        try {
-            val mp = MediaPlayer()
-            player = mp
-
-            mp.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
-
-            mp.setOnPreparedListener { m ->
+        scope.launch {
+            val file = fetchAudio(context, url)
+            if (my != token[0]) return@launch
+            if (file == null) {
                 isPreparing = false
-                try {
-                    m.playbackParams = PlaybackParams().setSpeed(speeds[speedIndex])
-                } catch (_: Exception) {
+                audioError = context.getString(R.string.err_no_connection)
+                return@launch
+            }
+            try {
+                val mp = MediaPlayer()
+                player = mp
+                mp.setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                        .build()
+                )
+                mp.setOnPreparedListener { m ->
+                    isPreparing = false
+                    try {
+                        m.playbackParams = PlaybackParams().setSpeed(speeds[speedIndex])
+                    } catch (_: Exception) {
+                    }
+                    m.start()
+                    isPlaying = true
                 }
-                m.start()
-                isPlaying = true
-            }
-
-            mp.setOnCompletionListener { onDone() }
-
-            mp.setOnErrorListener { _, what, extra ->
-                audioError = context.getString(R.string.err_playback, what, extra)
+                mp.setOnCompletionListener { onDone() }
+                mp.setOnErrorListener { _, what, extra ->
+                    file.delete()
+                    audioError = context.getString(R.string.err_playback, what, extra)
+                    stopAudio()
+                    true
+                }
+                mp.setDataSource(file.absolutePath)
+                mp.prepareAsync()
+            } catch (e: Exception) {
                 stopAudio()
-                true
+                audioError = context.getString(
+                    R.string.err_audio,
+                    e.message ?: context.getString(R.string.err_no_connection)
+                )
             }
-
-            mp.setDataSource(url)
-            mp.prepareAsync()
-        } catch (e: Exception) {
-            stopAudio()
-            audioError = context.getString(
-                R.string.err_audio,
-                e.message ?: context.getString(R.string.err_no_connection)
-            )
         }
     }
-
     fun playAyah(index: Int, withBismillah: Boolean = true) {
         if (index !in surah.ayahs.indices) {
             stopAudio()
@@ -165,7 +178,11 @@ fun SurahReader(
         val base = "https://cdn.islamic.network/quran/audio/128/" +
             "${reciters[selectedReciterIndex].id}/"
         val verseUrl = base + "${surah.ayahs[index].globalNumber}.mp3"
-
+if (index + 1 in surah.ayahs.indices) {
+    scope.launch {
+        fetchAudio(context, base + "${surah.ayahs[index + 1].globalNumber}.mp3")
+    }
+}
         val afterVerse = {
             if (repeatOne) playAyah(index, false) else playAyah(index + 1)
         }
@@ -212,6 +229,8 @@ fun SurahReader(
 
     DisposableEffect(surah.number) {
         onDispose {
+
+            token[0]++
             player?.release()
             player = null
         }
@@ -433,3 +452,25 @@ private val ayahInline = mapOf(
         Placeholder(36.sp, 36.sp, PlaceholderVerticalAlign.Center)
     ) { num -> AyahBadge(num) }
 )
+private suspend fun fetchAudio(context: Context, url: String): File? =
+    withContext(Dispatchers.IO) {
+        val dir = File(context.cacheDir, "audio").apply { mkdirs() }
+        val file = File(dir, url.substringAfter("/audio/").replace("/", "_"))
+        if (file.exists() && file.length() > 0) return@withContext file
+        repeat(4) { attempt ->
+            try {
+                val conn = URL(url).openConnection() as HttpURLConnection
+                conn.connectTimeout = 8000
+                conn.readTimeout = 8000
+                val tmp = File(dir, file.name + "." + System.nanoTime() + ".tmp")
+                conn.inputStream.use { input ->
+                    tmp.outputStream().use { input.copyTo(it) }
+                }
+                if (tmp.length() > 0 && tmp.renameTo(file)) return@withContext file
+                tmp.delete()
+            } catch (_: Exception) {
+            }
+            delay(1000L * (attempt + 1))
+        }
+        null
+    }
