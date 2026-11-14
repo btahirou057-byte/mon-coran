@@ -161,7 +161,7 @@ fun QuranApp() {
     var showProphets by remember { mutableStateOf(false) }
     var showCalendar by remember { mutableStateOf(false) }
     var fromHome by remember { mutableStateOf(false) }
-
+var autoPlayNext by remember { mutableStateOf(false) }
     val tabs = listOf(
         tr("Accueil", "Home", "首页", "الرئيسية"),
         tr("Coran", "Quran", "古兰经", "القرآن"),
@@ -215,20 +215,30 @@ fun QuranApp() {
                         onMore = { selectedTab = 5 }
                     )
                 }
-                1 -> {
-                    if (selectedSurah == null) {
-                        QuranHome(
-                            surahs = surahs,
-                            error = error?.message,
-                            onSelect = { selectedSurah = it }
-                        )
-                    } else {
-                        SurahReader(
-                            surah = selectedSurah!!,
-                            onBack = { selectedSurah = null }
-                        )
+            1 -> {
+    if (selectedSurah == null) {
+        QuranHome(
+            surahs = surahs,
+            error = error?.message,
+            onSelect = { autoPlayNext = false; selectedSurah = it }
+        )
+    } else {
+        key(selectedSurah!!.number) {
+            SurahReader(
+                surah = selectedSurah!!,
+                onBack = { autoPlayNext = false; selectedSurah = null },
+                autoPlay = autoPlayNext,
+                onNext = {
+                    val next = surahs.getOrNull(selectedSurah!!.number)
+                    if (next != null) {
+                        autoPlayNext = true
+                        selectedSurah = next
                     }
                 }
+            )
+        }
+    }
+            }
                 2 -> AudioHome()
                 3 -> PrayerHome()
                 4 -> QiblaScreen()
