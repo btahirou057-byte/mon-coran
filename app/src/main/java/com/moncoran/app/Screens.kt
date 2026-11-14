@@ -508,6 +508,7 @@ fun MoreHome(onTasbih: () -> Unit = {}, onInvocations: () -> Unit = {}) {
                 }
             )
         }
+                item { SourceCredits() }
         item { FeatureCard("🌍 " + tr("Langue", "Language", "语言", "اللغة"), "Français · English · 中文 · العربية", { showLang = true }) }
     }
 }
