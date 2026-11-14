@@ -57,14 +57,16 @@ internal val reciters = listOf(
 
 // Récitateur partagé entre l'onglet Audio et le lecteur de sourate
 internal var selectedReciterIndex by mutableIntStateOf(0)
-
+internal var fullPageOpen by mutableStateOf(false)
 private val speeds = listOf(1f, 1.25f, 1.5f, 0.75f)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SurahReader(
     surah: SurahData,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNext: (() -> Unit)? = null,
+    autoPlay: Boolean = false
 ) {
     val context = LocalContext.current
 
@@ -76,8 +78,9 @@ fun SurahReader(
     var repeatOne by remember { mutableStateOf(false) }
     var speedIndex by remember { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
-var fullPage by remember { mutableStateOf(false) }
-    // La Bismillah est dans le texte du verset 1 (sauf sourates 1 et 9)
+
+    var fullPage by remember { mutableStateOf(autoPlay && fullPageOpen) }
+LaunchedEffect(fullPage) { fullPageOpen = fullPage }
     val hasBismillah = surah.number != 1 && surah.number != 9
 
     val prefs = remember { context.getSharedPreferences("favoris", Context.MODE_PRIVATE) }
@@ -169,11 +172,12 @@ val token = remember { intArrayOf(0) }
         }
     }
     fun playAyah(index: Int, withBismillah: Boolean = true) {
-        if (index !in surah.ayahs.indices) {
+            if (index !in surah.ayahs.indices) {
             stopAudio()
             currentIndex = -1
+            if (index >= surah.ayahs.size) onNext?.invoke()
             return
-        }
+            }
 
         currentIndex = index
 
@@ -238,7 +242,9 @@ if (index + 1 in surah.ayahs.indices) {
         }
     }
 
-    LaunchedEffect(currentIndex) {
+    LaunchedEffect(Unit) { if (autoPlay) playAyah(0) }
+LaunchedEffect(currentIndex) {
+        
         if (currentIndex >= 0) {
             listState.animateScrollToItem(currentIndex)
         }
