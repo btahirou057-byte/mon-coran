@@ -356,7 +356,10 @@ fun PrayerHome() {
                     "تعذّر حساب المواقيت. تحقق من الإحداثيات."
                 ),
                 color = Color.Red
-            )
+                        )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        AdBanner()
     }
 }
+        
