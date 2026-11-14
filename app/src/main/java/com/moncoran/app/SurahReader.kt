@@ -78,7 +78,11 @@ fun SurahReader(
     var repeatOne by remember { mutableStateOf(false) }
     var speedIndex by remember { mutableIntStateOf(0) }
     var menuOpen by remember { mutableStateOf(false) }
-
+    var translations by remember { mutableStateOf<List<String>>(emptyList()) }
+    LaunchedEffect(translationLang, surah.number) {
+        translations = if (translationLang == "off") emptyList()
+        else loadTranslation(context, surah.number, translationLang) ?: emptyList()
+    }
     var fullPage by remember { mutableStateOf(autoPlay && fullPageOpen) }
 LaunchedEffect(fullPage) { fullPageOpen = fullPage }
     val hasBismillah = surah.number != 1 && surah.number != 9
@@ -364,6 +368,7 @@ LaunchedEffect(currentIndex) {
             color = Color.DarkGray,
             textAlign = TextAlign.Center
         )
+                TranslationPicker()
 
         if (audioError != null) {
             Text(
@@ -410,6 +415,17 @@ inlineContent = ayahInline,
                     textAlign = TextAlign.Right
                 )
                 HorizontalDivider(color = Color(0xFFE5E8E1))
+                                if (translationLang != "off") {
+                    Text(
+                        text = translations.getOrNull(ayah.number - 1) ?: "…",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = Color(0xFF4A5A4F),
+                        fontSize = 16.sp,
+                        lineHeight = 24.sp
+                    )
+                                }
             }
         }
 
