@@ -1,4 +1,6 @@
 package com.moncoran.app
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDirection
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -384,6 +386,7 @@ if (index + 1 in surah.ayahs.indices) {
     append(star)
 },
 inlineContent = ayahInline,
+                    style = TextStyle(textDirection = TextDirection.Rtl),
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
@@ -523,6 +526,7 @@ private fun FullPageView(
                         append(" ")
                         appendInlineContent("badge", ayah.number.toString())
                     },
+                    style = TextStyle(textDirection = TextDirection.Rtl),
                     inlineContent = ayahInline,
                     modifier = Modifier
                         .fillMaxWidth()
