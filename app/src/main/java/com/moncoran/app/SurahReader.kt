@@ -46,13 +46,13 @@ import androidx.compose.ui.unit.sp
 
 private val Highlight = Color(0xFFDDEBD5)
 
-internal data class Reciter(val label: String, val id: String)
+internal data class Reciter(val label: String, val id: String, val kbps: Int)
 
 internal val reciters = listOf(
-    Reciter("Mishary Alafasy", "ar.alafasy"),
-    Reciter("Abdul Rahman Al-Sudais", "ar.abdurrahmaansudais"),
-    Reciter("Maher Al-Muaiqly", "ar.mahermuaiqly"),
-    Reciter("Abdul Basit", "ar.abdulbasitmurattal")
+    Reciter("Mishary Alafasy", "ar.alafasy", 128),
+    Reciter("Abdul Rahman Al-Sudais", "ar.abdurrahmaansudais", 192),
+    Reciter("Maher Al-Muaiqly", "ar.mahermuaiqly", 128),
+    Reciter("Abdul Basit", "ar.abdulbasitmurattal", 64)
 )
 
 // Récitateur partagé entre l'onglet Audio et le lecteur de sourate
@@ -181,7 +181,7 @@ val token = remember { intArrayOf(0) }
 
         currentIndex = index
 
-        val base = "https://cdn.islamic.network/quran/audio/128/" +
+        val base = "https://cdn.islamic.network/quran/audio/${reciters[selectedReciterIndex].kbps}/" +
             "${reciters[selectedReciterIndex].id}/"
         val verseUrl = base + "${surah.ayahs[index].globalNumber}.mp3"
 if (index + 1 in surah.ayahs.indices) {
