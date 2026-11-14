@@ -188,9 +188,11 @@ val token = remember { intArrayOf(0) }
         val base = "https://cdn.islamic.network/quran/audio/${reciters[selectedReciterIndex].kbps}/" +
             "${reciters[selectedReciterIndex].id}/"
         val verseUrl = base + "${surah.ayahs[index].globalNumber}.mp3"
-if (index + 1 in surah.ayahs.indices) {
-    scope.launch {
-        fetchAudio(context, base + "${surah.ayahs[index + 1].globalNumber}.mp3")
+scope.launch {
+    for (k in 1..3) {
+        if (index + k in surah.ayahs.indices) {
+            fetchAudio(context, base + "${surah.ayahs[index + k].globalNumber}.mp3")
+        }
     }
 }
         val afterVerse = {
